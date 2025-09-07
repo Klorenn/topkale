@@ -5,6 +5,7 @@ Un bot de Discord avanzado que monitorea y publica automáticamente los top hold
 ## 📋 Tabla de Contenidos
 
 - [Características Principales](#-características-principales)
+- [Nuevas Características](#-nuevas-características)
 - [Arquitectura del Sistema](#-arquitectura-del-sistema)
 - [Mecanismos Internos](#-mecanismos-internos)
 - [Instalación Local](#-instalación-local)
@@ -24,17 +25,61 @@ Un bot de Discord avanzado que monitorea y publica automáticamente los top hold
 ### 🎯 Funcionalidades Core
 - **Monitoreo en Tiempo Real**: Obtiene datos actualizados de holders desde la API de hoops.finance
 - **Publicaciones Automáticas**: Ranking diario a las 9:00 AM y 6:00 PM
-- **Comandos Interactivos**: Sistema de comandos para consultas manuales
+- **Slash Commands**: Sistema de comandos nativos de Discord (`/kale`, `/top`, `/price`, `/help`)
 - **Formato Profesional**: Embeds con medallas, colores y formato optimizado
 - **Webhook Integration**: Publicación directa via webhooks de Discord
 - **Fallback System**: Sistema de respaldo en caso de fallos
+- **Verificación Externa**: Enlaces clickeables a Stellar Expert para verificación
 
 ### 📊 Datos Mostrados
 - **Top 5 Holders**: Ranking con medallas (🥇🥈🥉)
-- **Direcciones Completas**: Wallets en formato código
-- **Balances Detallados**: Cantidades exactas con formato de miles
-- **Porcentajes**: Distribución del supply total
+- **Direcciones Verificables**: Enlaces clickeables a Stellar Expert
+- **Balances Formateados**: Cantidades con decimales correctos (2 decimales)
+- **Formato de Miles**: Separadores de miles con comas bien expresadas
+- **Unidad KALE**: Identificación clara de la moneda
 - **Timestamps**: Fecha y hora de actualización
+
+## 🆕 Nuevas Características
+
+### ✨ Mejoras Implementadas (Última Actualización)
+
+#### **1. Slash Commands Nativos**
+- **Migración completa** de comandos `!` a comandos `/`
+- **Autocompletado automático** en Discord
+- **Validación nativa** de parámetros
+- **Interfaz más profesional** y moderna
+
+#### **2. Enlaces de Verificación a Stellar Expert**
+- **Direcciones clickeables** para cada holder
+- **Verificación directa** de balances y transacciones
+- **Transparencia total** de los datos mostrados
+- **Enlaces automáticos** a `stellar.expert/explorer/public/account/`
+
+#### **3. Formato de Balances Mejorado**
+- **Decimales correctos**: 2 decimales fijos (.00)
+- **Separadores de miles**: Comas bien expresadas
+- **Unidad KALE**: Identificación clara de la moneda
+- **Formato consistente**: Todos los holders con el mismo formato
+
+#### **4. Estructura de Código Optimizada**
+- **Slash Commands**: Implementación con `SlashCommandBuilder`
+- **Registro automático**: Comandos se registran al iniciar
+- **Manejo de interacciones**: Sistema robusto de respuestas
+- **Código modular**: Funciones bien organizadas
+
+### 📊 Ejemplo de Salida Actualizada
+
+```
+🏆 Ranking Top 5 Holders
+
+🥇 1
+[CDL74RF5BLYR2YBLCCI7F5FB6TPSCLKEJUBSD2RSVWZ4YHF3VMFAIGWA](https://stellar.expert/explorer/public/account/CDL74RF5BLYR2YBLCCI7F5FB6TPSCLKEJUBSD2RSVWZ4YHF3VMFAIGWA)
+💰 **244,905,600,010.00 KALE**
+
+🥈 2
+[GARARLMQ64D6LUXYMSAR7I2S6DPNZ6LPR7QOVBO3Y5XPW25GR757TWVT](https://stellar.expert/explorer/public/account/GARARLMQ64D6LUXYMSAR7I2S6DPNZ6LPR7QOVBO3Y5XPW25GR757TWVT)
+💰 **105,600,244,131.07 KALE**
+```
 
 ## 🏗️ Arquitectura del Sistema
 
@@ -171,9 +216,9 @@ cd kale-discord-bot
 ```
 
 2. **Instalar dependencias**
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
 3. **Configurar variables de entorno**
 ```bash
@@ -198,6 +243,9 @@ DISCORD_TOKEN=tu_token_del_bot_aqui
 
 # ID del canal de Discord (para fallback)
 CHANNEL_ID=1414030545083433001
+
+# Application ID para Slash Commands (OBLIGATORIO)
+CLIENT_ID=tu_application_id_aqui
 
 # Número de holders a mostrar (opcional, default: 5)
 TOP_LIMIT=5
@@ -331,7 +379,7 @@ docker stop kale-bot
 ### Opción 3: Heroku
 
 #### Configuración
-```bash
+   ```bash
 # Instalar Heroku CLI
 npm install -g heroku
 
@@ -432,14 +480,20 @@ worker: node index.js
 
 ## 🎮 Comandos Disponibles
 
-### Comandos Básicos
+### Slash Commands (Nativos de Discord)
 
 | Comando | Función | Ejemplo |
 |---------|---------|---------|
-| `!kale` | Muestra comandos disponibles | `!kale` |
-| `!top` | Ranking actual de holders | `!top` |
-| `!price` | Precio actual del token | `!price` |
-| `!help` | Ayuda completa | `!help` |
+| `/kale` | Muestra comandos disponibles | `/kale` |
+| `/top` | Ranking actual de holders con enlaces a Stellar Expert | `/top` |
+| `/price` | Precio actual del token | `/price` |
+| `/help` | Ayuda completa | `/help` |
+
+### Características de los Slash Commands
+- ✅ **Autocompletado**: Discord sugiere comandos automáticamente
+- ✅ **Validación**: Parámetros validados por Discord
+- ✅ **Interfaz Nativa**: Integración perfecta con la UI de Discord
+- ✅ **Menos Errores**: No hay problemas de escritura o formato
 
 ### Implementación de Comandos
 
@@ -621,7 +675,7 @@ pm2 install pm2-logrotate
 
 ### Comandos de Diagnóstico
 
-```bash
+   ```bash
 # Verificar estado del bot
 pm2 status kale-bot
 

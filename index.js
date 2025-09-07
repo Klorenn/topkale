@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Events, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Events, EmbedBuilder, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const axios = require('axios');
 const cron = require('node-cron');
 require('dotenv').config();
@@ -17,34 +17,72 @@ const KALE_TOKEN_ADDRESS = 'CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEH
 const KALE_API_URL = `https://api.hoops.finance/tokens/${KALE_TOKEN_ADDRESS}/balances?excludezero=true&excludeid=true&excludetoken=true&excludelastupdated=true`;
 const TOP_LIMIT = parseInt(process.env.TOP_LIMIT) || 5;
 
+// Slash Commands
+const commands = [
+    new SlashCommandBuilder()
+        .setName('kale')
+        .setDescription('Muestra los comandos principales del bot de Kale'),
+    
+    new SlashCommandBuilder()
+        .setName('top')
+        .setDescription('Muestra el ranking de top 5 holders de Kale'),
+    
+    new SlashCommandBuilder()
+        .setName('price')
+        .setDescription('Muestra el precio actual del token Kale'),
+    
+    new SlashCommandBuilder()
+        .setName('help')
+        .setDescription('Muestra ayuda completa del bot')
+];
+
+// Register slash commands
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+
+(async () => {
+    try {
+        console.log(' Registrando comandos slash...');
+        
+        await rest.put(
+            Routes.applicationCommands(process.env.CLIENT_ID),
+            { body: commands }
+        );
+        
+        console.log('✅ Comandos slash registrados exitosamente');
+    } catch (error) {
+        console.error('❌ Error registrando comandos slash:', error);
+    }
+})();
+
 // When the client is ready, run this code (only once)
 client.once(Events.ClientReady, readyClient => {
     console.log(`🌿 Kale Bot Ready! Logged in as ${readyClient.user.tag}`);
     console.log(`📊 Will post top ${TOP_LIMIT} holders daily`);
+    console.log(` Slash Commands: /kale, /top, /price, /help`);
 });
 
-// Listen for messages
-client.on(Events.MessageCreate, async message => {
-    // Ignore messages from bots
-    if (message.author.bot) return;
+// Listen for slash command interactions
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) return;
 
-    // Commands
-    if (message.content === '!kale') {
-        await message.reply('🌿 **Kale Bot Commands:**\n`!top` - Show top holders\n`!price` - Show current price\n`!help` - Show this help');
+    if (interaction.commandName === 'kale') {
+        await interaction.reply('🌿 **Kale Bot Commands:**\n`/top` - Show top holders\n`/price` - Show current price\n`/help` - Show this help');
     }
 
-    if (message.content === '!top') {
+    if (interaction.commandName === 'top') {
         try {
+            await interaction.deferReply();
             const embed = await getTopHoldersEmbed();
-            await message.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error('Error fetching top holders:', error);
-            await message.reply('❌ Error fetching top holders data. Please try again later.');
+            await interaction.editReply('❌ Error fetching top holders data. Please try again later.');
         }
     }
 
-    if (message.content === '!price') {
+    if (interaction.commandName === 'price') {
         try {
+            await interaction.deferReply();
             const priceData = await getKalePrice();
             const embed = new EmbedBuilder()
                 .setTitle('🌿 Kale Token Price')
@@ -55,26 +93,26 @@ client.on(Events.MessageCreate, async message => {
                     { name: 'Market Cap', value: `$${priceData.marketCap}`, inline: true }
                 )
                 .setTimestamp();
-            await message.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error('Error fetching price:', error);
-            await message.reply('❌ Error fetching price data. Please try again later.');
+            await interaction.editReply('❌ Error fetching price data. Please try again later.');
         }
     }
 
-    if (message.content === '!help') {
+    if (interaction.commandName === 'help') {
         const embed = new EmbedBuilder()
             .setTitle('🌿 Kale Bot Help')
-            .setDescription('Commands available:')
+            .setDescription('Comandos disponibles:')
             .setColor(0x00ff00)
             .addFields(
-                { name: '!kale', value: 'Show main commands', inline: true },
-                { name: '!top', value: 'Show top holders', inline: true },
-                { name: '!price', value: 'Show current price', inline: true },
-                { name: '!help', value: 'Show this help', inline: true }
+                { name: '/kale', value: 'Show main commands', inline: true },
+                { name: '/top', value: 'Show top holders', inline: true },
+                { name: '/price', value: 'Show current price', inline: true },
+                { name: '/help', value: 'Show this help', inline: true }
             )
             .setFooter({ text: 'Kale Bot - Daily top holders updates' });
-        await message.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed] });
     }
 });
 
@@ -152,7 +190,7 @@ async function getTopHoldersEmbed() {
     const holders = await getTopHolders();
     
     const embed = new EmbedBuilder()
-        .setTitle('🏆 Ranking Top 5 Holders')
+        .setTitle(' Ranking Top 5 Holders')
         .setColor(3447003) // Blue color like in your example
         .setTimestamp();
 
@@ -163,18 +201,24 @@ async function getTopHoldersEmbed() {
         else if (index === 2) medal = '🥉 3';
         else medal = `${index + 1}️⃣`;
         
-        // Format balance with proper formatting (remove the division by 1000000)
-        const formattedBalance = holder.rawBalance.toLocaleString('en-US');
+        // Format balance with correct decimal places (KALE has 6 decimals)
+        const formattedBalance = (holder.rawBalance / 1000000).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        
+        // Create Stellar Expert link
+        const stellarExpertLink = `[${holder.fullAddress}](https://stellar.expert/explorer/public/account/${holder.fullAddress})`;
         
         embed.addFields({
             name: medal,
-            value: `\`${holder.fullAddress}\`\n💰 **${formattedBalance}**`,
+            value: `${stellarExpertLink}\n💰 **${formattedBalance} KALE**`,
             inline: false
         });
     });
 
     embed.setFooter({ 
-        text: 'Datos actualizados 📊' 
+        text: 'Datos actualizados 📊 • Haz clic en las direcciones para verificar en Stellar Expert' 
     });
     
     return embed;
