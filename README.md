@@ -1,6 +1,6 @@
 # 🌿 Kale Discord Bot - Complete Documentation
 
-An advanced Discord bot that monitors and automatically publishes Kale token top holders on the Solana blockchain, using real-time data from the hoops.finance API.
+An advanced Discord bot that monitors and automatically publishes Kale token top holders on the Stellar blockchain, using real-time data from the hoops.finance API.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen)](https://nodejs.org/)
@@ -397,7 +397,7 @@ WEBHOOK_URL=https://discord.com/api/webhooks/...
 
 ### Kale Token
 - **Address:** `CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV`
-- **Blockchain:** Solana
+- **Blockchain:** Stellar
 - **Type:** SPL Token
 
 ## 🎮 Available Commands
