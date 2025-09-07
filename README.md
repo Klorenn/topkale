@@ -25,7 +25,8 @@ Un bot de Discord avanzado que monitorea y publica automáticamente los top hold
 ### 🎯 Funcionalidades Core
 - **Monitoreo en Tiempo Real**: Obtiene datos actualizados de holders desde la API de hoops.finance
 - **Publicaciones Automáticas**: Ranking diario a las 9:00 AM y 6:00 PM
-- **Slash Commands**: Sistema de comandos nativos de Discord (`/kale`, `/top`, `/price`, `/help`)
+- **Slash Commands**: Sistema de comandos nativos de Discord (`/kale`, `/top`, `/price`, `/farm`, `/invite`, `/help`)
+- **Botones Interactivos**: Botones clickeables para acciones rápidas (farm, invite)
 - **Formato Profesional**: Embeds con medallas, colores y formato optimizado
 - **Webhook Integration**: Publicación directa via webhooks de Discord
 - **Fallback System**: Sistema de respaldo en caso de fallos
@@ -448,6 +449,8 @@ worker: node index.js
 
 **Endpoint**: `https://api.hoops.finance/tokens/{TOKEN_ADDRESS}/balances`
 
+**Reconocimiento**: Crédito mostrado en comandos `/kale` y `/help`
+
 **Parámetros**:
 - `excludezero=true` - Excluir balances cero
 - `excludeid=true` - Excluir IDs innecesarios
@@ -487,6 +490,8 @@ worker: node index.js
 | `/kale` | Muestra comandos disponibles | `/kale` |
 | `/top` | Ranking actual de holders con enlaces a Stellar Expert | `/top` |
 | `/price` | Precio actual del token | `/price` |
+| `/farm` | Redirige a la página oficial de Kale Farm | `/farm` |
+| `/invite` | Genera enlace para invitar el bot a tu servidor | `/invite` |
 | `/help` | Ayuda completa | `/help` |
 
 ### Características de los Slash Commands
@@ -494,6 +499,40 @@ worker: node index.js
 - ✅ **Validación**: Parámetros validados por Discord
 - ✅ **Interfaz Nativa**: Integración perfecta con la UI de Discord
 - ✅ **Menos Errores**: No hay problemas de escritura o formato
+
+### Descripción Detallada de Comandos
+
+#### 🌿 `/kale` - Comandos Principales
+Muestra una lista rápida de todos los comandos disponibles del bot.
+
+#### 🏆 `/top` - Ranking de Holders
+- Muestra el top 5 de holders de KALE
+- Enlaces clickeables a Stellar Expert para verificación
+- Balances formateados con decimales correctos
+- Medallas para las primeras 3 posiciones
+
+#### 💰 `/price` - Precio del Token
+- Precio actual de KALE en USD
+- Cambio de precio en 24 horas
+- Market cap del token
+- Datos en tiempo real desde Jupiter API
+
+#### 🌾 `/farm` - Kale Farm
+- **Botón interactivo** para acceder a la página oficial de farmeo
+- Redirige a [kalefarm.xyz](https://kalefarm.xyz/) con un solo clic
+- Nota sobre futuras implementaciones de farmeo directo en Discord
+- Interfaz más intuitiva y profesional
+
+#### 🔗 `/invite` - Invitar Bot
+- **Botón interactivo** para generar enlace de invitación
+- Agregar el bot a tu servidor con un solo clic
+- Permisos mínimos requeridos (enviar mensajes, comandos slash, embeds)
+- Lista de características del bot
+
+#### ❓ `/help` - Ayuda Completa
+- Muestra todos los comandos disponibles en formato embed
+- Información adicional sobre el bot
+- **Crédito a Hoops Finance API** en el footer
 
 ### Implementación de Comandos
 

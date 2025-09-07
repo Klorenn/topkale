@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Events, EmbedBuilder, SlashCommandBuilder, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, Events, EmbedBuilder, SlashCommandBuilder, REST, Routes, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const axios = require('axios');
 const cron = require('node-cron');
 require('dotenv').config();
@@ -32,6 +32,14 @@ const commands = [
         .setDescription('Muestra el precio actual del token Kale'),
     
     new SlashCommandBuilder()
+        .setName('farm')
+        .setDescription('🌾 Redirige a la página oficial de Kale Farm para farmear tokens'),
+    
+    new SlashCommandBuilder()
+        .setName('invite')
+        .setDescription('🔗 Genera un enlace para invitar el bot a tu servidor'),
+    
+    new SlashCommandBuilder()
         .setName('help')
         .setDescription('Muestra ayuda completa del bot')
 ];
@@ -58,7 +66,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 client.once(Events.ClientReady, readyClient => {
     console.log(`🌿 Kale Bot Ready! Logged in as ${readyClient.user.tag}`);
     console.log(`📊 Will post top ${TOP_LIMIT} holders daily`);
-    console.log(` Slash Commands: /kale, /top, /price, /help`);
+    console.log(` Slash Commands: /kale, /top, /price, /farm, /invite, /help`);
 });
 
 // Listen for slash command interactions
@@ -66,7 +74,21 @@ client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'kale') {
-        await interaction.reply('🌿 **Kale Bot Commands:**\n`/top` - Show top holders\n`/price` - Show current price\n`/help` - Show this help');
+        const embed = new EmbedBuilder()
+            .setTitle('🌿 Kale Bot Commands')
+            .setDescription('Comandos disponibles:')
+            .setColor(0x00ff00)
+            .addFields(
+                { name: '/top', value: 'Show top holders', inline: true },
+                { name: '/price', value: 'Show current price', inline: true },
+                { name: '/farm', value: 'Go to Kale Farm', inline: true },
+                { name: '/invite', value: 'Invite bot to server', inline: true },
+                { name: '/help', value: 'Show this help', inline: true }
+            )
+            .setFooter({ 
+                text: 'Powered by Hoops Finance API (api.hoops.finance)' 
+            });
+        await interaction.reply({ embeds: [embed] });
     }
 
     if (interaction.commandName === 'top') {
@@ -100,6 +122,64 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 
+    if (interaction.commandName === 'farm') {
+        const embed = new EmbedBuilder()
+            .setTitle('🌾 Kale Farm - Farmeo de Tokens')
+            .setDescription('¡Farmeá tokens KALE en la plataforma oficial!')
+            .setColor(0x00ff00)
+            .addFields(
+                { 
+                    name: '📝 Nota', 
+                    value: 'En el futuro planeamos implementar el farmeo directamente desde Discord. Por ahora, usa el botón para acceder a la plataforma web.', 
+                    inline: false 
+                }
+            )
+            .setFooter({ text: 'Kale Farm - Plataforma oficial de farmeo' })
+            .setTimestamp();
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setLabel('🚀 Ir a Kale Farm')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://kalefarm.xyz/')
+            );
+
+        await interaction.reply({ embeds: [embed], components: [row] });
+    }
+
+    if (interaction.commandName === 'invite') {
+        const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.CLIENT_ID}&permissions=2048&scope=bot%20applications.commands`;
+        const embed = new EmbedBuilder()
+            .setTitle('🔗 Invitar Kale Bot a tu Servidor')
+            .setDescription('¡Agregá el bot de Kale a tu servidor para monitorear los top holders!')
+            .setColor(0x00ff00)
+            .addFields(
+                { 
+                    name: '📋 Permisos Requeridos', 
+                    value: '• Enviar mensajes\n• Usar comandos slash\n• Insertar embeds', 
+                    inline: false 
+                },
+                { 
+                    name: '✨ Características', 
+                    value: '• Ranking diario de top holders\n• Precios en tiempo real\n• Enlaces a Stellar Expert\n• Comandos slash nativos', 
+                    inline: false 
+                }
+            )
+            .setFooter({ text: 'Kale Bot - Monitoreo de holders en tiempo real' })
+            .setTimestamp();
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setLabel('🔗 Invitar Bot')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(inviteUrl)
+            );
+
+        await interaction.reply({ embeds: [embed], components: [row] });
+    }
+
     if (interaction.commandName === 'help') {
         const embed = new EmbedBuilder()
             .setTitle('🌿 Kale Bot Help')
@@ -109,9 +189,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 { name: '/kale', value: 'Show main commands', inline: true },
                 { name: '/top', value: 'Show top holders', inline: true },
                 { name: '/price', value: 'Show current price', inline: true },
+                { name: '/farm', value: 'Go to Kale Farm', inline: true },
+                { name: '/invite', value: 'Invite bot to server', inline: true },
                 { name: '/help', value: 'Show this help', inline: true }
             )
-            .setFooter({ text: 'Kale Bot - Daily top holders updates' });
+            .setFooter({ 
+                text: 'Kale Bot - Daily top holders updates • Powered by Hoops Finance API (api.hoops.finance)' 
+            });
         await interaction.reply({ embeds: [embed] });
     }
 });
