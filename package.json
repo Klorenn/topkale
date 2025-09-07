@@ -1,0 +1,19 @@
+{
+  "name": "kale-discord-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot built with Node.js",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "keywords": ["discord", "bot", "nodejs"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "axios": "^1.6.2",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.3.1"
+  }
+}
