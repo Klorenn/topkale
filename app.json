@@ -1,0 +1,12 @@
+{
+  "name": "Kale Discord Bot",
+  "description": "Discord bot for monitoring Kale token holders on Stellar blockchain",
+  "repository": "https://github.com/Klorenn/topkale",
+  "keywords": ["discord", "bot", "kale", "stellar", "blockchain"],
+  "success_url": "/",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
