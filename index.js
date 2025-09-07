@@ -3,6 +3,24 @@ const axios = require('axios');
 const cron = require('node-cron');
 require('dotenv').config();
 
+// Validate required environment variables
+const requiredEnvVars = ['DISCORD_TOKEN', 'CLIENT_ID'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+    console.warn('⚠️ Missing required environment variables:', missingVars.join(', '));
+    console.warn('📝 Please check your .env file and ensure all required variables are set.');
+    console.warn('💡 You can use env.example as a template.');
+    console.warn('🚀 Bot will start anyway, but some features may not work properly.');
+}
+
+// Validate optional but recommended variables
+if (!process.env.CHANNEL_ID && !process.env.WEBHOOK_URL) {
+    console.warn('⚠️ Warning: Neither CHANNEL_ID nor WEBHOOK_URL is configured.');
+    console.warn('📝 The bot will not be able to post daily updates.');
+    console.warn('💡 Please configure at least one of these in your .env file.');
+}
+
 // Language storage (in a real app, use a database)
 const userLanguages = new Map();
 
@@ -16,12 +34,16 @@ const translations = {
             farm: '🌾 Redirige a la página oficial de Kale Farm para farmear tokens',
             invite: '🔗 Genera un enlace para invitar el bot a tu servidor',
             help: 'Muestra ayuda completa del bot',
-            language: '🌐 Cambia el idioma del bot'
+            language: '🌐 Cambia el idioma del bot',
+            rank: '🏆 Muestra la posición de una dirección en el ranking',
+            stats: '📊 Muestra estadísticas globales del token Kale',
+            alerts: '🔔 Configura alertas de cambios de balance',
+            history: '📈 Muestra el histórico de cambios en holdings',
         },
         embeds: {
             kaleTitle: '🌿 Kale Bot Commands',
             kaleDescription: 'Comandos disponibles:',
-            topTitle: '🏆 Ranking Top 5 Holders',
+            topTitle: '🏆 Top Holders Ranking',
             priceTitle: '🌿 Kale Token Price',
             farmTitle: '🌾 Kale Farm - Farmeo de Tokens',
             farmDescription: '¡Farmeá tokens KALE en la plataforma oficial!',
@@ -32,7 +54,17 @@ const translations = {
             whatIsKale: '🌿 ¿Qué es Kale?',
             whatIsKaleDesc: 'Kale es un token digital en la blockchain de Stellar que forma parte del ecosistema de Kale Farm. Es una criptomoneda que permite a los usuarios participar en el sistema de farmeo y obtener recompensas por sus actividades.',
             whatIsFarm: '🌾 ¿Qué es Kale Farm?',
-            whatIsFarmDesc: 'Kale Farm es la plataforma oficial donde puedes farmear (obtener) tokens KALE. Es un sistema de recompensas que te permite ganar tokens KALE realizando diferentes actividades y tareas en la plataforma.'
+            whatIsFarmDesc: 'Kale Farm es la plataforma oficial donde puedes farmear (obtener) tokens KALE. Es un sistema de recompensas que te permite ganar tokens KALE realizando diferentes actividades y tareas en la plataforma.',
+            rankTitle: '🏆 Posición en el Ranking',
+            rankDescription: 'Posición actual de la dirección en el ranking de holders',
+            statsTitle: '📊 Estadísticas Globales de Kale',
+            statsDescription: 'Estadísticas generales del token Kale',
+            alertsTitle: '🔔 Configuración de Alertas',
+            alertsDescription: 'Configura alertas para cambios de balance',
+            historyTitle: '📈 Historial de Holdings',
+            historyDescription: 'Historial de cambios en tus holdings',
+            leaderboardTitle: '🏅 Leaderboard Extendido',
+            leaderboardDescription: 'Ranking completo de holders de Kale'
         },
         fields: {
             top: 'Show top holders',
@@ -41,9 +73,18 @@ const translations = {
             invite: 'Invite bot to server',
             help: 'Show this help',
             language: 'Change language',
+            rank: 'Check address position in ranking',
+            stats: 'Show global statistics',
+            alerts: 'Configure balance alerts',
+            history: 'Show holdings history',
             currentPrice: 'Current Price',
             change24h: '24h Change',
             marketCap: 'Market Cap',
+            balance: 'Balance',
+            percentage: 'Percentage',
+            position: 'Position',
+            totalSupply: 'Total Supply',
+            totalHolders: 'Total Holders',
             requiredPermissions: '📋 Permisos Requeridos',
             requiredPermissionsDesc: '• Enviar mensajes\n• Usar comandos slash\n• Insertar embeds',
             features: '✨ Características',
@@ -60,21 +101,30 @@ const translations = {
         footer: {
             poweredBy: 'Powered by Hoops Finance API (api.hoops.finance)',
             kaleFarm: 'Kale Farm - Plataforma oficial de farmeo',
-            kaleBot: 'Kale Bot - Monitoreo de holders en tiempo real',
-            dailyUpdates: 'Kale Bot - Daily top holders updates • Powered by Hoops Finance API (api.hoops.finance)',
-            dataUpdated: 'Datos actualizados 📊 • Haz clic en las direcciones para verificar en Stellar Expert'
+            dataUpdated: 'Datos actualizados en tiempo real'
         },
         messages: {
-            dailyUpdate: '🌿 **Daily Top Holders Update**',
-            errorFetchingHolders: '❌ Error fetching top holders data. Please try again later.',
-            errorFetchingPrice: '❌ Error fetching price data. Please try again later.',
-            languageChanged: '🌐 Idioma cambiado a español',
-            slashCommandsRegistered: '✅ Comandos slash registrados exitosamente',
+            botReady: '✅ Bot de Kale está listo!',
+            willPostDaily: '📅 Publicará actualizaciones diarias de los top',
+            holdersDaily: 'holders diariamente',
+            slashCommands: '🔧 Comandos slash registrados correctamente',
+            slashCommandsRegistered: '✅ Comandos slash registrados correctamente',
             slashCommandsError: '❌ Error registrando comandos slash:',
-            botReady: '🌿 Kale Bot Ready! Logged in as',
-            willPostDaily: '📊 Will post top',
-            holdersDaily: 'holders daily',
-            slashCommands: 'Slash Commands: /kale, /top, /price, /farm, /invite, /help'
+            dailyUpdate: '📊 **Actualización Diaria - Top Holders de Kale**',
+            errorFetchingHolders: '❌ Error obteniendo los top holders. Intenta más tarde.',
+            errorFetchingPrice: '❌ Error obteniendo el precio. Intenta más tarde.',
+            languageChanged: '🌐 Idioma cambiado a español',
+            walletConnectedSuccess: '✅ Wallet conectada exitosamente!',
+            farmingReward: '🎉 ¡Recompensa obtenida!',
+            farmingError: '❌ Error en el farming',
+            invalidAddress: '❌ Dirección de Stellar inválida. Debe tener 56 caracteres y comenzar con "G".',
+            addressNotFound: '❌ Dirección no encontrada en los holders de Kale.',
+            userNotFound: '❌ Usuario no encontrado en el ranking.',
+            invalidPercentage: '❌ Porcentaje inválido. Usa un número entre 0.1 y 100.',
+            alertSet: '✅ Alerta configurada correctamente.',
+            alertRemoved: '✅ Alerta eliminada correctamente.',
+            noHistory: '❌ No hay historial disponible para esta dirección.',
+            noAlerts: '❌ No tienes alertas configuradas.'
         }
     },
     en: {
@@ -85,7 +135,11 @@ const translations = {
             farm: '🌾 Redirects to the official Kale Farm page to farm tokens',
             invite: '🔗 Generates a link to invite the bot to your server',
             help: 'Shows complete bot help',
-            language: '🌐 Changes the bot language'
+            language: '🌐 Changes the bot language',
+            rank: '🏆 Shows an address position in the ranking',
+            stats: '📊 Shows global Kale token statistics',
+            alerts: '🔔 Configure balance change alerts',
+            history: '📈 Shows holdings change history',
         },
         embeds: {
             kaleTitle: '🌿 Kale Bot Commands',
@@ -101,7 +155,17 @@ const translations = {
             whatIsKale: '🌿 What is Kale?',
             whatIsKaleDesc: 'Kale is a digital token on the Stellar blockchain that is part of the Kale Farm ecosystem. It is a cryptocurrency that allows users to participate in the farming system and earn rewards for their activities.',
             whatIsFarm: '🌾 What is Kale Farm?',
-            whatIsFarmDesc: 'Kale Farm is the official platform where you can farm (earn) KALE tokens. It is a reward system that allows you to earn KALE tokens by performing different activities and tasks on the platform.'
+            whatIsFarmDesc: 'Kale Farm is the official platform where you can farm (obtain) KALE tokens. It is a reward system that allows you to earn KALE tokens by performing different activities and tasks on the platform.',
+            rankTitle: '🏆 Ranking Position',
+            rankDescription: 'Current position of the address in the holders ranking',
+            statsTitle: '📊 Global Kale Statistics',
+            statsDescription: 'General statistics of the Kale token',
+            alertsTitle: '🔔 Alerts Configuration',
+            alertsDescription: 'Configure alerts for balance changes',
+            historyTitle: '📈 Holdings History',
+            historyDescription: 'History of changes in your holdings',
+            leaderboardTitle: '🏅 Extended Leaderboard',
+            leaderboardDescription: 'Complete ranking of Kale holders'
         },
         fields: {
             top: 'Show top holders',
@@ -110,13 +174,22 @@ const translations = {
             invite: 'Invite bot to server',
             help: 'Show this help',
             language: 'Change language',
+            rank: 'Check address position in ranking',
+            stats: 'Show global statistics',
+            alerts: 'Configure balance alerts',
+            history: 'Show holdings history',
             currentPrice: 'Current Price',
             change24h: '24h Change',
             marketCap: 'Market Cap',
+            balance: 'Balance',
+            percentage: 'Percentage',
+            position: 'Position',
+            totalSupply: 'Total Supply',
+            totalHolders: 'Total Holders',
             requiredPermissions: '📋 Required Permissions',
             requiredPermissionsDesc: '• Send messages\n• Use slash commands\n• Embed links',
             features: '✨ Features',
-            featuresDesc: '• Daily top holders ranking\n• Real-time prices\n• Stellar Expert links\n• Native slash commands',
+            featuresDesc: '• Daily top holders ranking\n• Real-time prices\n• Links to Stellar Expert\n• Native slash commands',
             note: '📝 Note',
             noteDesc: 'In the future we plan to implement farming directly from Discord. For now, use the button to access the web platform.'
         },
@@ -129,21 +202,30 @@ const translations = {
         footer: {
             poweredBy: 'Powered by Hoops Finance API (api.hoops.finance)',
             kaleFarm: 'Kale Farm - Official farming platform',
-            kaleBot: 'Kale Bot - Real-time holders monitoring',
-            dailyUpdates: 'Kale Bot - Daily top holders updates • Powered by Hoops Finance API (api.hoops.finance)',
-            dataUpdated: 'Data updated 📊 • Click on addresses to verify on Stellar Expert'
+            dataUpdated: 'Data updated in real time'
         },
         messages: {
-            dailyUpdate: '🌿 **Daily Top Holders Update**',
-            errorFetchingHolders: '❌ Error fetching top holders data. Please try again later.',
-            errorFetchingPrice: '❌ Error fetching price data. Please try again later.',
-            languageChanged: '🌐 Language changed to English',
+            botReady: '✅ Kale bot is ready!',
+            willPostDaily: '📅 Will post daily updates of the top',
+            holdersDaily: 'holders daily',
+            slashCommands: '🔧 Slash commands registered successfully',
             slashCommandsRegistered: '✅ Slash commands registered successfully',
             slashCommandsError: '❌ Error registering slash commands:',
-            botReady: '🌿 Kale Bot Ready! Logged in as',
-            willPostDaily: '📊 Will post top',
-            holdersDaily: 'holders daily',
-            slashCommands: 'Slash Commands: /kale, /top, /price, /farm, /invite, /help'
+            dailyUpdate: '📊 **Daily Update - Kale Top Holders**',
+            errorFetchingHolders: '❌ Error fetching top holders. Try again later.',
+            errorFetchingPrice: '❌ Error fetching price. Try again later.',
+            languageChanged: '🌐 Language changed to English',
+            walletConnectedSuccess: '✅ Wallet connected successfully!',
+            farmingReward: '🎉 Reward obtained!',
+            farmingError: '❌ Farming error',
+            invalidAddress: '❌ Invalid Stellar address. Must be 56 characters and start with "G".',
+            addressNotFound: '❌ Address not found in Kale holders.',
+            userNotFound: '❌ User not found in ranking.',
+            invalidPercentage: '❌ Invalid percentage. Use a number between 0.1 and 100.',
+            alertSet: '✅ Alert configured successfully.',
+            alertRemoved: '✅ Alert removed successfully.',
+            noHistory: '❌ No history available for this address.',
+            noAlerts: '❌ You have no alerts configured.'
         }
     },
     pt: {
@@ -154,23 +236,37 @@ const translations = {
             farm: '🌾 Redireciona para a página oficial do Kale Farm para farmear tokens',
             invite: '🔗 Gera um link para convidar o bot para seu servidor',
             help: 'Mostra ajuda completa do bot',
-            language: '🌐 Muda o idioma do bot'
+            language: '🌐 Muda o idioma do bot',
+            rank: '🏆 Mostra a posição de um endereço no ranking',
+            stats: '📊 Mostra estatísticas globais do token Kale',
+            alerts: '🔔 Configure alertas de mudanças de saldo',
+            history: '📈 Mostra o histórico de mudanças nos holdings',
         },
         embeds: {
-            kaleTitle: '🌿 Comandos do Kale Bot',
+            kaleTitle: '🌿 Comandos do Bot Kale',
             kaleDescription: 'Comandos disponíveis:',
-            topTitle: '🏆 Ranking Top 5 Holders',
+            topTitle: '🏆 Top Holders Ranking',
             priceTitle: '🌿 Preço do Token Kale',
             farmTitle: '🌾 Kale Farm - Farm de Tokens',
             farmDescription: 'Farme tokens KALE na plataforma oficial!',
-            inviteTitle: '🔗 Convidar Kale Bot para seu Servidor',
+            inviteTitle: '🔗 Convidar Bot Kale para seu Servidor',
             inviteDescription: 'Adicione o bot Kale ao seu servidor para monitorar os top holders!',
-            helpTitle: '🌿 Ajuda do Kale Bot',
+            helpTitle: '🌿 Ajuda do Bot Kale',
             helpDescription: 'Comandos disponíveis:',
             whatIsKale: '🌿 O que é Kale?',
-            whatIsKaleDesc: 'Kale é um token digital na blockchain Stellar que faz parte do ecossistema Kale Farm. É uma criptomoeda que permite aos usuários participar do sistema de farming e ganhar recompensas por suas atividades.',
+            whatIsKaleDesc: 'Kale é um token digital na blockchain Stellar que faz parte do ecossistema Kale Farm. É uma criptomoeda que permite aos usuários participar do sistema de farming e obter recompensas por suas atividades.',
             whatIsFarm: '🌾 O que é Kale Farm?',
-            whatIsFarmDesc: 'Kale Farm é a plataforma oficial onde você pode farmear (ganhar) tokens KALE. É um sistema de recompensas que permite ganhar tokens KALE realizando diferentes atividades e tarefas na plataforma.'
+            whatIsFarmDesc: 'Kale Farm é a plataforma oficial onde você pode farmear (obter) tokens KALE. É um sistema de recompensas que permite ganhar tokens KALE realizando diferentes atividades e tarefas na plataforma.',
+            rankTitle: '🏆 Posição no Ranking',
+            rankDescription: 'Posição atual do endereço no ranking de holders',
+            statsTitle: '📊 Estatísticas Globais do Kale',
+            statsDescription: 'Estatísticas gerais do token Kale',
+            alertsTitle: '🔔 Configuração de Alertas',
+            alertsDescription: 'Configure alertas para mudanças de saldo',
+            historyTitle: '📈 Histórico de Holdings',
+            historyDescription: 'Histórico de mudanças nos seus holdings',
+            leaderboardTitle: '🏅 Leaderboard Estendido',
+            leaderboardDescription: 'Ranking completo de holders de Kale'
         },
         fields: {
             top: 'Mostrar top holders',
@@ -179,9 +275,18 @@ const translations = {
             invite: 'Convidar bot para servidor',
             help: 'Mostrar esta ajuda',
             language: 'Mudar idioma',
+            rank: 'Verificar posição do endereço no ranking',
+            stats: 'Mostrar estatísticas globais',
+            alerts: 'Configurar alertas de saldo',
+            history: 'Mostrar histórico de holdings',
             currentPrice: 'Preço Atual',
             change24h: 'Mudança 24h',
             marketCap: 'Market Cap',
+            balance: 'Saldo',
+            percentage: 'Porcentagem',
+            position: 'Posição',
+            totalSupply: 'Fornecimento Total',
+            totalHolders: 'Total de Holders',
             requiredPermissions: '📋 Permissões Necessárias',
             requiredPermissionsDesc: '• Enviar mensagens\n• Usar comandos slash\n• Inserir embeds',
             features: '✨ Características',
@@ -193,33 +298,44 @@ const translations = {
             goToFarm: '🚀 Ir para Kale Farm',
             inviteBot: '🔗 Convidar Bot',
             changeToEnglish: '🇺🇸 English',
-            changeToSpanish: '🇪🇸 Español',
-            changeToPortuguese: '🇧🇷 Português'
+            changeToSpanish: '🇪🇸 Español'
         },
         footer: {
             poweredBy: 'Powered by Hoops Finance API (api.hoops.finance)',
             kaleFarm: 'Kale Farm - Plataforma oficial de farming',
-            kaleBot: 'Kale Bot - Monitoramento de holders em tempo real',
-            dailyUpdates: 'Kale Bot - Atualizações diárias de top holders • Powered by Hoops Finance API (api.hoops.finance)',
-            dataUpdated: 'Dados atualizados 📊 • Clique nos endereços para verificar no Stellar Expert'
+            dataUpdated: 'Dados atualizados em tempo real'
         },
         messages: {
-            dailyUpdate: '🌿 **Atualização Diária de Top Holders**',
-            errorFetchingHolders: '❌ Erro ao buscar dados dos top holders. Tente novamente mais tarde.',
-            errorFetchingPrice: '❌ Erro ao buscar dados de preço. Tente novamente mais tarde.',
-            languageChanged: '🌐 Idioma alterado para português',
+            botReady: '✅ Bot Kale está pronto!',
+            willPostDaily: '📅 Postará atualizações diárias dos top',
+            holdersDaily: 'holders diariamente',
+            slashCommands: '🔧 Comandos slash registrados com sucesso',
             slashCommandsRegistered: '✅ Comandos slash registrados com sucesso',
-            slashCommandsError: '❌ Erro ao registrar comandos slash:',
-            botReady: '🌿 Kale Bot Ready! Logged in as',
-            willPostDaily: '📊 Will post top',
-            holdersDaily: 'holders daily',
-            slashCommands: 'Slash Commands: /kale, /top, /price, /farm, /invite, /help'
+            slashCommandsError: '❌ Erro registrando comandos slash:',
+            dailyUpdate: '📊 **Atualização Diária - Top Holders de Kale**',
+            errorFetchingHolders: '❌ Erro obtendo os top holders. Tente mais tarde.',
+            errorFetchingPrice: '❌ Erro obtendo o preço. Tente mais tarde.',
+            languageChanged: '🌐 Idioma alterado para português',
+            walletConnectedSuccess: '✅ Wallet conectada com sucesso!',
+            farmingReward: '🎉 Recompensa obtida!',
+            farmingError: '❌ Erro no farming',
+            invalidAddress: '❌ Endereço Stellar inválido. Deve ter 56 caracteres e começar com "G".',
+            addressNotFound: '❌ Endereço não encontrado nos holders de Kale.',
+            userNotFound: '❌ Usuário não encontrado no ranking.',
+            invalidPercentage: '❌ Porcentagem inválida. Use um número entre 0.1 e 100.',
+            alertSet: '✅ Alerta configurado com sucesso.',
+            alertRemoved: '✅ Alerta removido com sucesso.',
+            noHistory: '❌ Nenhum histórico disponível para este endereço.',
+            noAlerts: '❌ Você não tem alertas configurados.'
         }
     }
 };
 
 // Function to get user language (defaults to Spanish)
 function getUserLanguage(userId) {
+    if (userId === 'default') {
+        return 'es'; // Default language for daily posts
+    }
     return userLanguages.get(userId) || 'es';
 }
 
@@ -248,43 +364,80 @@ const KALE_TOKEN_ADDRESS = 'CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEH
 const KALE_API_URL = `https://api.hoops.finance/tokens/${KALE_TOKEN_ADDRESS}/balances?excludezero=true&excludeid=true&excludetoken=true&excludelastupdated=true`;
 const TOP_LIMIT = parseInt(process.env.TOP_LIMIT) || 5;
 
-// Slash Commands
+// Slash commands
 const commands = [
     new SlashCommandBuilder()
         .setName('kale')
-        .setDescription('Muestra los comandos principales del bot de Kale'),
-    
+        .setDescription('Shows the main commands of the Kale bot'),
     new SlashCommandBuilder()
         .setName('top')
-        .setDescription('Muestra el ranking de top 5 holders de Kale'),
-    
+        .setDescription('Shows the top Kale holders ranking')
+        .addIntegerOption(option =>
+            option.setName('limit')
+                .setDescription('Number of positions to show (default: 5, maximum: 25)')
+                .setRequired(false)
+                .setMinValue(1)
+                .setMaxValue(25)),
     new SlashCommandBuilder()
         .setName('price')
-        .setDescription('Muestra el precio actual del token Kale'),
-    
+        .setDescription('Shows the current Kale token price'),
     new SlashCommandBuilder()
         .setName('farm')
-        .setDescription('🌾 Redirige a la página oficial de Kale Farm para farmear tokens'),
-    
+        .setDescription('🌾 Redirects to the official Kale Farm page to farm tokens'),
     new SlashCommandBuilder()
         .setName('invite')
-        .setDescription('🔗 Genera un enlace para invitar el bot a tu servidor'),
-    
+        .setDescription('🔗 Generates a link to invite the bot to your server'),
     new SlashCommandBuilder()
         .setName('help')
-        .setDescription('Muestra ayuda completa del bot'),
-    
+        .setDescription('Shows complete bot help'),
     new SlashCommandBuilder()
         .setName('language')
-        .setDescription('🌐 Cambia el idioma del bot')
+        .setDescription('🌐 Changes the bot language'),
+    new SlashCommandBuilder()
+        .setName('rank')
+        .setDescription('🏆 Shows an address position in the ranking')
+        .addStringOption(option =>
+            option.setName('address')
+                .setDescription('Stellar address (56 characters, starts with G)')
+                .setRequired(true)),
+    new SlashCommandBuilder()
+        .setName('stats')
+        .setDescription('📊 Muestra estadísticas globales del token Kale'),
+    new SlashCommandBuilder()
+        .setName('alerts')
+        .setDescription('🔔 Configura alertas de cambios de balance')
+        .addStringOption(option =>
+            option.setName('action')
+                .setDescription('Acción a realizar')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'Ver alertas', value: 'list' },
+                    { name: 'Agregar alerta', value: 'add' },
+                    { name: 'Eliminar alerta', value: 'remove' }
+                ))
+        .addStringOption(option =>
+            option.setName('address')
+                .setDescription('Dirección de Stellar para la alerta (máximo 25)')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('percentage')
+                .setDescription('Porcentaje de cambio para la alerta (ej: 5%)')
+                .setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('history')
+        .setDescription('📈 Muestra el histórico de cambios en holdings')
+        .addStringOption(option =>
+            option.setName('address')
+                .setDescription('Dirección de Stellar para ver el historial')
+                .setRequired(true)),
 ];
 
 // Register slash commands
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
-
 (async () => {
     try {
-        console.log(' Registrando comandos slash...');
+        const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+        
+        console.log('🔄 Registrando comandos slash...');
         
         await rest.put(
             Routes.applicationCommands(process.env.CLIENT_ID),
@@ -304,10 +457,10 @@ client.once(Events.ClientReady, readyClient => {
     console.log(t('default', 'messages.slashCommands'));
 });
 
-// Listen for slash command interactions
+// Listen for all interactions
 client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-
+    // Handle slash commands
+    if (interaction.isChatInputCommand()) {
     if (interaction.commandName === 'kale') {
         const embed = new EmbedBuilder()
             .setTitle(t(interaction.user.id, 'embeds.kaleTitle'))
@@ -321,6 +474,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 { name: '/help', value: t(interaction.user.id, 'fields.help'), inline: true },
                 { name: '/language', value: t(interaction.user.id, 'fields.language'), inline: true }
             )
+            .addFields(
+                    { name: '💼 **Wallet & Analytics**', value: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', inline: false },
+                    { name: '/rank', value: t(interaction.user.id, 'fields.rank'), inline: true },
+                    { name: '/stats', value: t(interaction.user.id, 'fields.stats'), inline: true },
+                    { name: '/alerts', value: t(interaction.user.id, 'fields.alerts'), inline: true },
+                    { name: '/history', value: t(interaction.user.id, 'fields.history'), inline: true }
+            )
             .setFooter({ 
                 text: t(interaction.user.id, 'footer.poweredBy')
             });
@@ -330,7 +490,8 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.commandName === 'top') {
         try {
             await interaction.deferReply();
-            const embed = await getTopHoldersEmbed(interaction.user.id);
+            const limit = Math.min(interaction.options.getInteger('limit') || 5, 25); // Cap at 25 due to Discord embed field limit
+            const embed = await getTopHoldersEmbed(interaction.user.id, limit);
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error('Error fetching top holders:', error);
@@ -386,6 +547,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (interaction.commandName === 'invite') {
         const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.CLIENT_ID}&permissions=2048&scope=bot%20applications.commands`;
+            
         const embed = new EmbedBuilder()
             .setTitle(t(interaction.user.id, 'embeds.inviteTitle'))
             .setDescription(t(interaction.user.id, 'embeds.inviteDescription'))
@@ -402,7 +564,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     inline: false 
                 }
             )
-            .setFooter({ text: t(interaction.user.id, 'footer.kaleBot') })
+                .setFooter({ text: t(interaction.user.id, 'footer.poweredBy') })
             .setTimestamp();
 
         const row = new ActionRowBuilder()
@@ -422,47 +584,29 @@ client.on(Events.InteractionCreate, async interaction => {
             .setDescription(t(interaction.user.id, 'embeds.helpDescription'))
             .setColor(0x00ff00)
             .addFields(
-                { name: '/kale', value: t(interaction.user.id, 'fields.top'), inline: true },
-                { name: '/top', value: t(interaction.user.id, 'fields.top'), inline: true },
-                { name: '/price', value: t(interaction.user.id, 'fields.price'), inline: true },
-                { name: '/farm', value: t(interaction.user.id, 'fields.farm'), inline: true },
-                { name: '/invite', value: t(interaction.user.id, 'fields.invite'), inline: true },
-                { name: '/help', value: t(interaction.user.id, 'fields.help'), inline: true },
-                { name: '/language', value: t(interaction.user.id, 'fields.language'), inline: true }
+                    { name: '🌿 **Comandos Básicos**', value: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', inline: false },
+                    { name: '/kale', value: t(interaction.user.id, 'commands.kale'), inline: false },
+                    { name: '/top', value: t(interaction.user.id, 'commands.top'), inline: false },
+                    { name: '/price', value: t(interaction.user.id, 'commands.price'), inline: false },
+                    { name: '/farm', value: t(interaction.user.id, 'commands.farm'), inline: false },
+                    { name: '/invite', value: t(interaction.user.id, 'commands.invite'), inline: false },
+                    { name: '/language', value: t(interaction.user.id, 'commands.language'), inline: false }
             )
             .addFields(
-                { 
-                    name: t(interaction.user.id, 'embeds.whatIsKale'), 
-                    value: t(interaction.user.id, 'embeds.whatIsKaleDesc'), 
-                    inline: false 
-                },
-                { 
-                    name: t(interaction.user.id, 'embeds.whatIsFarm'), 
-                    value: t(interaction.user.id, 'embeds.whatIsFarmDesc'), 
-                    inline: false 
-                }
+                    { name: '💼 **Wallet & Analytics**', value: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', inline: false },
+                    { name: '/rank', value: t(interaction.user.id, 'commands.rank'), inline: false },
+                    { name: '/stats', value: t(interaction.user.id, 'commands.stats'), inline: false },
+                    { name: '/alerts', value: t(interaction.user.id, 'commands.alerts'), inline: false },
+                    { name: '/history', value: t(interaction.user.id, 'commands.history'), inline: false }
             )
-            .setFooter({ 
-                text: t(interaction.user.id, 'footer.dailyUpdates')
-            });
+            .addFields(
+                    { name: t(interaction.user.id, 'embeds.whatIsKale'), value: t(interaction.user.id, 'embeds.whatIsKaleDesc'), inline: false },
+                    { name: t(interaction.user.id, 'embeds.whatIsFarm'), value: t(interaction.user.id, 'embeds.whatIsFarmDesc'), inline: false }
+                )
+                .setFooter({ text: t(interaction.user.id, 'footer.poweredBy') })
+                .setTimestamp();
 
-        const row = new ActionRowBuilder()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId('lang_es')
-                    .setLabel(t(interaction.user.id, 'buttons.changeToSpanish'))
-                    .setStyle(ButtonStyle.Primary),
-                new ButtonBuilder()
-                    .setCustomId('lang_en')
-                    .setLabel(t(interaction.user.id, 'buttons.changeToEnglish'))
-                    .setStyle(ButtonStyle.Primary),
-                new ButtonBuilder()
-                    .setCustomId('lang_pt')
-                    .setLabel(t(interaction.user.id, 'buttons.changeToPortuguese'))
-                    .setStyle(ButtonStyle.Primary)
-            );
-
-        await interaction.reply({ embeds: [embed], components: [row] });
+            await interaction.reply({ embeds: [embed] });
     }
 
     if (interaction.commandName === 'language') {
@@ -470,36 +614,18 @@ client.on(Events.InteractionCreate, async interaction => {
             .setTitle('🌐 Cambiar Idioma / Change Language / Mudar Idioma')
             .setDescription('Selecciona tu idioma preferido / Select your preferred language / Selecione seu idioma preferido')
             .setColor(0x00ff00)
-            .addFields(
-                { 
-                    name: '🇪🇸 Español', 
-                    value: 'Cambiar a español', 
-                    inline: true 
-                },
-                { 
-                    name: '🇺🇸 English', 
-                    value: 'Change to English', 
-                    inline: true 
-                },
-                { 
-                    name: '🇧🇷 Português', 
-                    value: 'Mudar para português', 
-                    inline: true 
-                }
-            )
-            .setFooter({ 
-                text: 'Kale Bot - Language Settings / Configurações de Idioma' 
-            });
+                .setFooter({ text: t(interaction.user.id, 'footer.poweredBy') })
+                .setTimestamp();
 
         const row = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
                     .setCustomId('lang_es')
-                    .setLabel('🇪🇸 Español')
+                        .setLabel(t(interaction.user.id, 'buttons.changeToSpanish'))
                     .setStyle(ButtonStyle.Primary),
                 new ButtonBuilder()
                     .setCustomId('lang_en')
-                    .setLabel('🇺🇸 English')
+                        .setLabel(t(interaction.user.id, 'buttons.changeToEnglish'))
                     .setStyle(ButtonStyle.Primary),
                 new ButtonBuilder()
                     .setCustomId('lang_pt')
@@ -509,35 +635,281 @@ client.on(Events.InteractionCreate, async interaction => {
 
         await interaction.reply({ embeds: [embed], components: [row] });
     }
-});
 
-// Handle button interactions
-client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isButton()) return;
 
-    if (interaction.customId === 'lang_es') {
-        userLanguages.set(interaction.user.id, 'es');
-        await interaction.reply({ 
-            content: t(interaction.user.id, 'messages.languageChanged'), 
-            ephemeral: true 
-        });
-    } else if (interaction.customId === 'lang_en') {
-        userLanguages.set(interaction.user.id, 'en');
-        await interaction.reply({ 
-            content: t(interaction.user.id, 'messages.languageChanged'), 
-            ephemeral: true 
-        });
-    } else if (interaction.customId === 'lang_pt') {
-        userLanguages.set(interaction.user.id, 'pt');
-        await interaction.reply({ 
-            content: t(interaction.user.id, 'messages.languageChanged'), 
-            ephemeral: true 
-        });
+        if (interaction.commandName === 'stats') {
+            try {
+                await interaction.deferReply();
+                const stats = await getGlobalStats();
+                
+        const embed = new EmbedBuilder()
+                    .setTitle(t(interaction.user.id, 'embeds.statsTitle'))
+                    .setDescription(t(interaction.user.id, 'embeds.statsDescription'))
+            .setColor(0x00ff00)
+            .addFields(
+                { 
+                            name: '💰 ' + t(interaction.user.id, 'fields.totalSupply'), 
+                            value: `${stats.totalSupply} KALE`, 
+                            inline: true 
+                        },
+                        { 
+                            name: '👥 ' + t(interaction.user.id, 'fields.totalHolders'), 
+                            value: `${stats.totalHolders}`, 
+                            inline: true 
+                        },
+                        { 
+                            name: '💎 ' + t(interaction.user.id, 'fields.marketCap'), 
+                            value: `$${stats.marketCap}`, 
+                            inline: true 
+                        },
+                        { 
+                            name: '📊 Top 10 Holdings', 
+                            value: `${stats.top10Percentage}%`, 
+                    inline: true 
+                },
+                { 
+                            name: '🏆 Top 100 Holdings', 
+                            value: `${stats.top100Percentage}%`, 
+                    inline: true 
+                },
+                { 
+                            name: '📈 Average Balance', 
+                            value: `${stats.averageBalance} KALE`, 
+                    inline: true 
+                }
+            )
+                    .setFooter({ text: t(interaction.user.id, 'footer.dataUpdated') })
+            .setTimestamp();
+
+                await interaction.editReply({ embeds: [embed] });
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+                await interaction.editReply(t(interaction.user.id, 'messages.errorFetchingHolders'));
+            }
+        }
+
+
+        if (interaction.commandName === 'rank') {
+            const address = interaction.options.getString('address');
+            
+            if (!isValidStellarAddress(address)) {
+            await interaction.reply({
+                    content: t(interaction.user.id, 'messages.invalidAddress'),
+                ephemeral: true
+            });
+                return;
+            }
+
+            try {
+                await interaction.deferReply();
+                const walletInfo = await getWalletInfo(address);
+                
+                if (!walletInfo) {
+                    await interaction.editReply(t(interaction.user.id, 'messages.addressNotFound'));
+            return;
+        }
+
+        const embed = new EmbedBuilder()
+                    .setTitle(t(interaction.user.id, 'embeds.rankTitle'))
+                    .setDescription(t(interaction.user.id, 'embeds.rankDescription'))
+            .setColor(0x00ff00)
+            .addFields(
+                { 
+                            name: '📍 Dirección', 
+                            value: `\`${address.slice(0, 8)}...${address.slice(-8)}\``, 
+                            inline: false 
+                        },
+                        { 
+                            name: '🏆 Posición en el Ranking', 
+                            value: `**#${walletInfo.position}**`, 
+                    inline: true 
+                },
+                { 
+                            name: '💰 ' + t(interaction.user.id, 'fields.balance'), 
+                            value: `${walletInfo.formattedBalance} KALE`, 
+                    inline: true 
+                },
+                { 
+                            name: '📊 ' + t(interaction.user.id, 'fields.percentage'), 
+                            value: `${walletInfo.percentage}%`, 
+                    inline: true 
+                        },
+                        { 
+                            name: '🔗 Stellar Expert', 
+                            value: `[Ver en Stellar Expert](https://stellar.expert/explorer/public/account/${address})`, 
+                    inline: false 
+                }
+            )
+                    .setFooter({ text: t(interaction.user.id, 'footer.dataUpdated') })
+            .setTimestamp();
+
+                await interaction.editReply({ embeds: [embed] });
+            } catch (error) {
+                console.error('Error fetching rank info:', error);
+                await interaction.editReply(t(interaction.user.id, 'messages.errorFetchingHolders'));
+            }
+        }
+
+        if (interaction.commandName === 'alerts') {
+            const action = interaction.options.getString('action');
+            const address = interaction.options.getString('address');
+            const percentage = interaction.options.getString('percentage');
+            
+            try {
+        await interaction.deferReply({ ephemeral: true });
+        
+                if (action === 'list') {
+            const embed = new EmbedBuilder()
+                        .setTitle(t(interaction.user.id, 'embeds.alertsTitle'))
+                        .setDescription(t(interaction.user.id, 'embeds.alertsDescription'))
+                        .setColor(0x00ff00)
+                .addFields(
+                    { 
+                                name: '📋 Alertas Configuradas', 
+                                value: 'No tienes alertas configuradas actualmente.', 
+                                inline: false 
+                            },
+                            { 
+                                name: '💡 Cómo agregar alertas', 
+                                value: 'Usa `/alerts add` con una dirección y porcentaje para configurar alertas de cambios de balance.', 
+                                inline: false 
+                            }
+                        )
+                        .setFooter({ text: t(interaction.user.id, 'footer.dataUpdated') })
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [embed] });
+                } else if (action === 'add') {
+                    if (!address || !percentage) {
+            await interaction.editReply({
+                            content: '❌ Necesitas proporcionar una dirección y porcentaje para agregar una alerta.'
+                        });
+                        return;
+                    }
+
+                    if (!isValidStellarAddress(address)) {
+                        await interaction.editReply(t(interaction.user.id, 'messages.invalidAddress'));
+                return;
+            }
+            
+                    const percentageValue = parseFloat(percentage.replace('%', ''));
+                    if (isNaN(percentageValue) || percentageValue < 0.1 || percentageValue > 100) {
+                        await interaction.editReply(t(interaction.user.id, 'messages.invalidPercentage'));
+                        return;
+                    }
+
+                    // In a real implementation, you'd store this in a database
+                    await interaction.editReply(t(interaction.user.id, 'messages.alertSet'));
+                } else if (action === 'remove') {
+                    if (!address) {
+            await interaction.editReply({
+                            content: '❌ Necesitas proporcionar una dirección para eliminar una alerta.'
+                        });
+                        return;
+                    }
+
+                    // In a real implementation, you'd remove from database
+                    await interaction.editReply(t(interaction.user.id, 'messages.alertRemoved'));
+                }
+            } catch (error) {
+                console.error('Error handling alerts:', error);
+                await interaction.editReply(t(interaction.user.id, 'messages.errorFetchingHolders'));
+            }
+        }
+
+        if (interaction.commandName === 'history') {
+            const address = interaction.options.getString('address');
+            
+            if (!isValidStellarAddress(address)) {
+                await interaction.reply({
+                    content: t(interaction.user.id, 'messages.invalidAddress'),
+                    ephemeral: true
+                });
+                return;
+            }
+            
+            try {
+                await interaction.deferReply();
+                
+                // For now, we'll show a placeholder - in a real implementation,
+                // you'd need to store and track historical data
+            const embed = new EmbedBuilder()
+                    .setTitle(t(interaction.user.id, 'embeds.historyTitle'))
+                    .setDescription(t(interaction.user.id, 'embeds.historyDescription'))
+                    .setColor(0x00ff00)
+                .addFields(
+                    { 
+                            name: '📍 Dirección', 
+                            value: `${address.slice(0, 8)}...${address.slice(-8)}`, 
+                            inline: true 
+                        },
+                        { 
+                            name: '📊 Estado', 
+                            value: 'Historial no disponible', 
+                        inline: true 
+                    },
+                    { 
+                            name: '💡 Información', 
+                            value: 'El historial de transacciones se está implementando. Por ahora, puedes usar `/rank` para ver el balance y posición actuales.', 
+                        inline: false 
+                    },
+                    { 
+                            name: '🔗 Stellar Expert', 
+                            value: `[Ver historial completo](https://stellar.expert/explorer/public/account/${address})`, 
+                            inline: false 
+                        }
+                    )
+                    .setFooter({ text: t(interaction.user.id, 'footer.dataUpdated') })
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [embed] });
+        } catch (error) {
+                console.error('Error fetching history:', error);
+                await interaction.editReply(t(interaction.user.id, 'messages.errorFetchingHolders'));
+        }
+    }
+    }
+    
+    // Handle button interactions
+    if (interaction.isButton()) {
+        console.log('🔍 Button clicked:', interaction.customId);
+        
+        if (interaction.customId === 'lang_es') {
+            userLanguages.set(interaction.user.id, 'es');
+            await interaction.reply({ 
+                content: t(interaction.user.id, 'messages.languageChanged'), 
+                ephemeral: true 
+            });
+        } else if (interaction.customId === 'lang_en') {
+            userLanguages.set(interaction.user.id, 'en');
+            await interaction.reply({ 
+                content: t(interaction.user.id, 'messages.languageChanged'), 
+                ephemeral: true 
+            });
+        } else if (interaction.customId === 'lang_pt') {
+            userLanguages.set(interaction.user.id, 'pt');
+            await interaction.reply({ 
+                content: t(interaction.user.id, 'messages.languageChanged'), 
+                ephemeral: true 
+            });
+        }
     }
 });
 
+// Function to validate Stellar address format
+function isValidStellarAddress(address) {
+    if (!address || typeof address !== 'string') return false;
+    
+    // Stellar addresses should be 56 characters long and start with 'G'
+    if (address.length !== 56 || !address.startsWith('G')) return false;
+    
+    // Check if it contains only valid base32 characters
+    const validChars = /^[ABCDEFGHIJKLMNOPQRSTUVWXYZ234567]+$/;
+    return validChars.test(address);
+}
+
 // Function to get top holders data from real API
-async function getTopHolders() {
+async function getTopHolders(limit = TOP_LIMIT) {
     try {
         console.log('📡 Fetching Kale holders data from API...');
         const response = await axios.get(KALE_API_URL);
@@ -550,10 +922,36 @@ async function getTopHolders() {
         // Calculate total supply
         const totalSupply = holders.reduce((sum, holder) => sum + holder.balance, 0);
         
+        // Filter out contract addresses and keep only valid Stellar wallet addresses
+        const walletHolders = holders.filter(holder => {
+            const address = holder.address;
+            // Only include valid Stellar wallet addresses (start with 'G', 56 chars, valid format)
+            // Exclude contract addresses (start with 'C') and invalid addresses
+            return address && isValidStellarAddress(address) && !address.startsWith('C');
+        });
+        
+        console.log(`🔍 Filtered ${walletHolders.length} wallet addresses from ${holders.length} total holders`);
+        
+        // Log some examples of filtered addresses for debugging
+        const contractAddresses = holders.filter(h => h.address && h.address.startsWith('C')).slice(0, 3);
+        const validWalletAddresses = walletHolders.slice(0, 3);
+        
+        if (contractAddresses.length > 0) {
+            console.log(`🚫 Excluded contract addresses: ${contractAddresses.map(h => h.address.slice(0, 8) + '...').join(', ')}`);
+        }
+        
+        if (validWalletAddresses.length > 0) {
+            console.log(`✅ Valid wallet addresses: ${validWalletAddresses.map(h => h.address.slice(0, 8) + '...').join(', ')}`);
+        }
+        
+        if (walletHolders.length === 0) {
+            throw new Error('No wallet addresses found in the data');
+        }
+        
         // Sort by balance (descending) and format data
-        const sortedHolders = holders
+        const sortedHolders = walletHolders
             .sort((a, b) => b.balance - a.balance)
-            .slice(0, TOP_LIMIT)
+            .slice(0, limit)
             .map(holder => {
                 const percentage = ((holder.balance / totalSupply) * 100).toFixed(2);
                 const formattedBalance = holder.balance.toLocaleString('en-US');
@@ -579,24 +977,46 @@ async function getTopHolders() {
 // Function to get Kale price from API
 async function getKalePrice() {
     try {
-        // Using Jupiter API for price data
+        // Try Jupiter API first
         const priceUrl = `https://price.jup.ag/v4/price?ids=${KALE_TOKEN_ADDRESS}`;
-        const response = await axios.get(priceUrl);
+        const response = await axios.get(priceUrl, { timeout: 10000 });
         const priceData = response.data.data[KALE_TOKEN_ADDRESS];
         
         if (!priceData) {
             throw new Error('Price data not found');
         }
         
+        const change24h = priceData.priceChange24h ? 
+            (priceData.priceChange24h * 100).toFixed(2) : '0.00';
+        const change24hFormatted = change24h.startsWith('-') ? change24h : `+${change24h}`;
+        
         return {
             price: priceData.price.toFixed(8),
-            change24h: priceData.priceChange24h ? `+${(priceData.priceChange24h * 100).toFixed(2)}` : 'N/A',
+            change24h: change24hFormatted,
             marketCap: 'N/A' // Would need additional API call for market cap
         };
         
     } catch (error) {
-        console.error('❌ Error fetching price:', error.message);
-        // Fallback to mock data if API fails
+        console.error('❌ Error fetching price from Jupiter API:', error.message);
+        
+        try {
+            // Fallback to Stellar Expert API
+            const stellarUrl = `https://api.stellar.expert/explorer/public/asset/${KALE_TOKEN_ADDRESS}`;
+            const stellarResponse = await axios.get(stellarUrl, { timeout: 10000 });
+            const stellarData = stellarResponse.data;
+            
+            if (stellarData && stellarData.price) {
+                return {
+                    price: stellarData.price.toFixed(8),
+                    change24h: '+0.00', // Stellar Expert doesn't provide 24h change
+                    marketCap: 'N/A'
+                };
+            }
+        } catch (stellarError) {
+            console.error('❌ Error fetching price from Stellar Expert:', stellarError.message);
+        }
+        
+        // Final fallback to mock data
         return {
             price: '0.000123',
             change24h: '+15.6',
@@ -605,9 +1025,108 @@ async function getKalePrice() {
     }
 }
 
+// Function to get wallet information for a specific address
+async function getWalletInfo(address) {
+    try {
+        // Get all holders data directly from API
+        const response = await axios.get(KALE_API_URL);
+        const allHolders = response.data;
+        
+        // Find the specific holder
+        const holder = allHolders.find(h => h.address === address);
+        
+        if (!holder) {
+            return null;
+        }
+
+        // Filter valid wallet addresses for calculations
+        const walletHolders = allHolders.filter(h => {
+            return h.address && isValidStellarAddress(h.address) && !h.address.startsWith('C');
+        });
+        
+        const totalSupply = walletHolders.reduce((sum, h) => sum + h.balance, 0);
+        
+        const percentage = ((holder.balance / totalSupply) * 100).toFixed(4);
+        const formattedBalance = (holder.balance / 1000000).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        // Find position in ranking
+        const sortedHolders = walletHolders.sort((a, b) => b.balance - a.balance);
+        const position = sortedHolders.findIndex(h => h.address === address) + 1;
+
+        return {
+            formattedBalance,
+            percentage,
+            position,
+            rawBalance: holder.balance
+        };
+    } catch (error) {
+        console.error('Error getting wallet info:', error);
+        return null;
+    }
+}
+
+// Function to get global statistics
+async function getGlobalStats() {
+    try {
+        const response = await axios.get(KALE_API_URL);
+        const holders = response.data;
+        
+        // Filter valid wallet addresses
+        const walletHolders = holders.filter(holder => {
+            const address = holder.address;
+            return address && isValidStellarAddress(address) && !address.startsWith('C');
+        });
+        
+        const totalSupply = walletHolders.reduce((sum, holder) => sum + holder.balance, 0);
+        const totalHolders = walletHolders.length;
+        
+        // Sort by balance
+        const sortedHolders = walletHolders.sort((a, b) => b.balance - a.balance);
+        
+        // Calculate top 10 and top 100 percentages
+        const top10Balance = sortedHolders.slice(0, 10).reduce((sum, holder) => sum + holder.balance, 0);
+        const top100Balance = sortedHolders.slice(0, 100).reduce((sum, holder) => sum + holder.balance, 0);
+        
+        const top10Percentage = ((top10Balance / totalSupply) * 100).toFixed(2);
+        const top100Percentage = ((top100Balance / totalSupply) * 100).toFixed(2);
+        
+        // Calculate average balance
+        const averageBalance = (totalSupply / totalHolders / 1000000).toFixed(2);
+        
+        // Get price for market cap calculation
+        const priceData = await getKalePrice();
+        const marketCap = (parseFloat(priceData.price) * totalSupply / 1000000).toFixed(0);
+        
+        return {
+            totalSupply: (totalSupply / 1000000).toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }),
+            totalHolders: totalHolders.toLocaleString('en-US'),
+            marketCap: marketCap,
+            top10Percentage,
+            top100Percentage,
+            averageBalance
+        };
+    } catch (error) {
+        console.error('Error getting global stats:', error);
+        return {
+            totalSupply: 'N/A',
+            totalHolders: 'N/A',
+            marketCap: 'N/A',
+            top10Percentage: 'N/A',
+            top100Percentage: 'N/A',
+            averageBalance: 'N/A'
+        };
+    }
+}
+
 // Function to create top holders embed
-async function getTopHoldersEmbed(userId) {
-    const holders = await getTopHolders();
+async function getTopHoldersEmbed(userId, limit = 5) {
+    const holders = await getTopHolders(limit);
     
     const embed = new EmbedBuilder()
         .setTitle(t(userId, 'embeds.topTitle'))
@@ -616,10 +1135,36 @@ async function getTopHoldersEmbed(userId) {
 
     holders.forEach((holder, index) => {
         let medal;
-        if (index === 0) medal = '🥇 1';
-        else if (index === 1) medal = '🥈 2';
-        else if (index === 2) medal = '🥉 3';
-        else medal = `${index + 1}️⃣`;
+        if (index === 0) medal = '🥇 1️⃣';
+        else if (index === 1) medal = '🥈 2️⃣';
+        else if (index === 2) medal = '🥉 3️⃣';
+        else {
+            const position = index + 1;
+            // Use combined number emojis for better formatting
+            if (position === 4) medal = '4️⃣';
+            else if (position === 5) medal = '5️⃣';
+            else if (position === 6) medal = '6️⃣';
+            else if (position === 7) medal = '7️⃣';
+            else if (position === 8) medal = '8️⃣';
+            else if (position === 9) medal = '9️⃣';
+            else if (position === 10) medal = '🔟';
+            else if (position === 11) medal = '1️⃣1️⃣';
+            else if (position === 12) medal = '1️⃣2️⃣';
+            else if (position === 13) medal = '1️⃣3️⃣';
+            else if (position === 14) medal = '1️⃣4️⃣';
+            else if (position === 15) medal = '1️⃣5️⃣';
+            else if (position === 16) medal = '1️⃣6️⃣';
+            else if (position === 17) medal = '1️⃣7️⃣';
+            else if (position === 18) medal = '1️⃣8️⃣';
+            else if (position === 19) medal = '1️⃣9️⃣';
+            else if (position === 20) medal = '2️⃣0️⃣';
+            else if (position === 21) medal = '2️⃣1️⃣';
+            else if (position === 22) medal = '2️⃣2️⃣';
+            else if (position === 23) medal = '2️⃣3️⃣';
+            else if (position === 24) medal = '2️⃣4️⃣';
+            else if (position === 25) medal = '2️⃣5️⃣';
+            else medal = `${position}️⃣`;
+        }
         
         // Format balance with correct decimal places (KALE has 6 decimals)
         const formattedBalance = (holder.rawBalance / 1000000).toLocaleString('en-US', {
@@ -644,42 +1189,80 @@ async function getTopHoldersEmbed(userId) {
     return embed;
 }
 
-// Webhook URL for posting
-const WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1414049159354384486/8JFjuf_6VMnc9KmNf9pX8UNJO9qaIwdLN1gGQkOTVTF77rMw-OCbxbo-dmw8OghOBE4X';
+// Webhook URL for posting (from environment variable)
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
-// Function to post daily top holders
+// Function to post daily top holders with price
 async function postDailyTopHolders() {
     try {
-        const embed = await getTopHoldersEmbed('default'); // Use default language for daily posts
+        const topHoldersEmbed = await getTopHoldersEmbed('default'); // Use default language for daily posts
+        const priceData = await getKalePrice();
+        
+        // Create price embed
+        const priceEmbed = new EmbedBuilder()
+            .setTitle('🌿 Kale Token Price')
+            .setColor(0x00ff00)
+            .addFields(
+                { name: '💰 Current Price', value: `$${priceData.price}`, inline: true },
+                { name: '📈 24h Change', value: `${priceData.change24h}%`, inline: true },
+                { name: '💎 Market Cap', value: `$${priceData.marketCap}`, inline: true }
+            )
+            .setTimestamp();
+        
+        // Check if webhook URL is configured
+        if (!WEBHOOK_URL) {
+            console.log('⚠️ No webhook URL configured, using channel fallback');
+            throw new Error('No webhook URL configured');
+        }
         
         // Send to webhook
         const response = await axios.post(WEBHOOK_URL, {
             content: t('default', 'messages.dailyUpdate'),
-            embeds: [embed]
+            embeds: [topHoldersEmbed, priceEmbed]
         });
         
         if (response.status === 204) {
-            console.log('✅ Daily top holders posted successfully via webhook');
+            console.log('✅ Daily top holders and price posted successfully via webhook');
         } else {
             console.log('⚠️ Unexpected webhook response:', response.status);
         }
         
     } catch (error) {
-        console.error('❌ Error posting daily top holders:', error);
+        console.error('❌ Error posting daily top holders:', error.message);
         
         // Fallback to channel if webhook fails
         try {
-            const channel = client.channels.cache.get(process.env.CHANNEL_ID);
+            const channelId = process.env.CHANNEL_ID;
+            if (!channelId) {
+                console.error('❌ No CHANNEL_ID configured for fallback');
+                return;
+            }
+            
+            const channel = client.channels.cache.get(channelId);
             if (channel) {
-                const embed = await getTopHoldersEmbed('default');
+                const topHoldersEmbed = await getTopHoldersEmbed('default');
+                const priceData = await getKalePrice();
+                
+                const priceEmbed = new EmbedBuilder()
+                    .setTitle('🌿 Kale Token Price')
+                    .setColor(0x00ff00)
+                    .addFields(
+                        { name: '💰 Current Price', value: `$${priceData.price}`, inline: true },
+                        { name: '📈 24h Change', value: `${priceData.change24h}%`, inline: true },
+                        { name: '💎 Market Cap', value: `$${priceData.marketCap}`, inline: true }
+                    )
+                    .setTimestamp();
+                
                 await channel.send({ 
                     content: t('default', 'messages.dailyUpdate'),
-                    embeds: [embed] 
+                    embeds: [topHoldersEmbed, priceEmbed] 
                 });
                 console.log('✅ Fallback: Posted via channel');
+            } else {
+                console.error('❌ Channel not found:', channelId);
             }
         } catch (fallbackError) {
-            console.error('❌ Fallback also failed:', fallbackError);
+            console.error('❌ Fallback also failed:', fallbackError.message);
         }
     }
 }

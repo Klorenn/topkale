@@ -1,19 +1,43 @@
 {
   "name": "kale-discord-bot",
-  "version": "1.0.0",
-  "description": "A Discord bot built with Node.js",
+  "version": "1.1.0",
+  "description": "A Discord bot for monitoring Kale token holders on Stellar blockchain",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node index.js"
+    "dev": "nodemon index.js",
+    "test": "node test-discord.js",
+    "test:preview": "node test-discord.js --preview"
   },
-  "keywords": ["discord", "bot", "nodejs"],
-  "author": "Pau Telluscoop",
+  "keywords": [
+    "discord",
+    "bot",
+    "nodejs",
+    "stellar",
+    "kale",
+    "cryptocurrency",
+    "blockchain"
+  ],
+  "author": "Pau Koh",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Klorenn/topkale.git"
+  },
+  "homepage": "https://github.com/Klorenn/topkale#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  },
   "dependencies": {
-    "discord.js": "^14.14.1",
     "axios": "^1.6.2",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
     "node-cron": "^3.0.3",
-    "dotenv": "^16.3.1"
+    "puppeteer": "^22.0.0",
+    "stellar-sdk": "^11.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }

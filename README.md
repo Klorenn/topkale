@@ -1,140 +1,152 @@
-# 🌿 Kale Discord Bot - Documentación Completa
+# 🌿 Kale Discord Bot - Complete Documentation
 
-Un bot de Discord avanzado que monitorea y publica automáticamente los top holders del token Kale en la blockchain de Stellar, utilizando datos en tiempo real de la API de hoops.finance.
+An advanced Discord bot that monitors and automatically publishes Kale token top holders on the Solana blockchain, using real-time data from the hoops.finance API.
 
-## 📋 Tabla de Contenidos
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen)](https://nodejs.org/)
+[![Discord.js](https://img.shields.io/badge/discord.js-v14.14.1-blue)](https://discord.js.org/)
 
-- [Características Principales](#-características-principales)
-- [Nuevas Características](#-nuevas-características)
-- [Arquitectura del Sistema](#-arquitectura-del-sistema)
-- [Mecanismos Internos](#-mecanismos-internos)
-- [Instalación Local](#-instalación-local)
-- [Configuración](#-configuración)
-- [Despliegue en Servidor](#-despliegue-en-servidor)
-- [Dependencias Críticas](#-dependencias-críticas)
-- [API y Fuentes de Datos](#-api-y-fuentes-de-datos)
-- [Comandos Disponibles](#-comandos-disponibles)
-- [Sistema Multilingüe](#-sistema-multilingüe)
-- [Programación de Tareas](#-programación-de-tareas)
-- [Manejo de Errores](#-manejo-de-errores)
-- [Monitoreo y Logs](#-monitoreo-y-logs)
+## 📋 Table of Contents
+
+- [Main Features](#-main-features)
+- [New Features](#-new-features)
+- [System Architecture](#️-system-architecture)
+- [Internal Mechanisms](#-internal-mechanisms)
+- [Local Installation](#-local-installation)
+- [Configuration](#️-configuration)
+- [Server Deployment](#-server-deployment)
+- [Critical Dependencies](#-critical-dependencies)
+- [APIs and Data Sources](#-apis-and-data-sources)
+- [Available Commands](#-available-commands)
+- [Task Scheduling](#-task-scheduling)
+- [Error Handling](#-error-handling)
+- [Monitoring and Logs](#-monitoring-and-logs)
 - [Troubleshooting](#-troubleshooting)
-- [Contribución](#-contribución)
+- [Contribution](#-contribution)
 
-## ✨ Características Principales
+## ✨ Main Features
 
-### 🎯 Funcionalidades Core
-- **Monitoreo en Tiempo Real**: Obtiene datos actualizados de holders desde la API de hoops.finance
-- **Publicaciones Automáticas**: Ranking diario a las 9:00 AM y 6:00 PM
-- **Sistema Multilingüe**: Soporte completo para Español, Inglés y Portugués
-- **Slash Commands**: Sistema de comandos nativos de Discord (`/kale`, `/top`, `/price`, `/farm`, `/invite`, `/help`, `/language`)
-- **Botones Interactivos**: Botones clickeables para acciones rápidas (farm, invite, cambio de idioma)
-- **Formato Profesional**: Embeds con medallas, colores y formato optimizado
-- **Webhook Integration**: Publicación directa via webhooks de Discord
-- **Fallback System**: Sistema de respaldo en caso de fallos
-- **Verificación Externa**: Enlaces clickeables a Stellar Expert para verificación
+### 🎯 Core Features
+- **Real-Time Monitoring**: Gets updated holder data from hoops.finance API
+- **Automatic Posts**: Daily ranking at 9:00 AM and 6:00 PM
+- **Multilingual**: Spanish, English and Portuguese support
+- **Slash Commands**: Native Discord commands (`/kale`, `/top`, `/price`, `/farm`, `/invite`, `/help`, `/language`, `/rank`, `/stats`, `/alerts`, `/history`)
+- **Interactive Buttons**: Clickable buttons for quick actions (farm, invite, language change)
+- **Professional Format**: Embeds with medals, colors and optimized formatting
+- **Webhook Integration**: Direct publication via Discord webhooks
+- **Fallback System**: Backup system in case of failures
+- **External Verification**: Clickable links to Stellar Expert for verification
 
-### 📊 Datos Mostrados
-- **Top 5 Holders**: Ranking con medallas (🥇🥈🥉)
-- **Direcciones Verificables**: Enlaces clickeables a Stellar Expert
-- **Balances Formateados**: Cantidades con decimales correctos (2 decimales)
-- **Formato de Miles**: Separadores de miles con comas bien expresadas
-- **Unidad KALE**: Identificación clara de la moneda
-- **Timestamps**: Fecha y hora de actualización
+### 📊 Displayed Data
+- **Top Holders**: Ranking with medals (🥇🥈🥉)
+- **Verifiable Addresses**: Clickable links to Stellar Expert
+- **Formatted Balances**: Amounts with correct decimals (2 decimals)
+- **Thousand Separator**: Proper comma formatting
+- **KALE Unit**: Clear currency identification
+- **Timestamps**: Update date and time
 
-## 🆕 Nuevas Características
+## 🆕 New Features
 
-### ✨ Mejoras Implementadas (Última Actualización)
+### ✨ Implemented Improvements (Latest Update)
 
-#### **1. Sistema Multilingüe Completo** 🌐
-- **Tres idiomas soportados**: Español, Inglés y Portugués
-- **Cambio dinámico de idioma** por usuario individual
-- **Botones interactivos** con banderas para cambio de idioma
-- **Persistencia de preferencias** - cada usuario mantiene su idioma
-- **Traducciones completas** de todos los comandos y mensajes
-- **Comando `/language`** dedicado para cambio de idioma
+#### **1. Native Slash Commands**
+- **Complete migration** from `!` commands to `/` commands
+- **Automatic autocomplete** in Discord
+- **Native parameter validation**
+- **More professional and modern interface**
 
-#### **2. Slash Commands Nativos**
-- **Migración completa** de comandos `!` a comandos `/`
-- **Autocompletado automático** en Discord
-- **Validación nativa** de parámetros
-- **Interfaz más profesional** y moderna
+#### **2. Stellar Expert Verification Links**
+- **Clickable addresses** for each holder
+- **Direct verification** of balances and transactions
+- **Total transparency** of displayed data
+- **Automatic links** to `stellar.expert/explorer/public/account/`
 
-#### **3. Enlaces de Verificación a Stellar Expert**
-- **Direcciones clickeables** para cada holder
-- **Verificación directa** de balances y transacciones
-- **Transparencia total** de los datos mostrados
-- **Enlaces automáticos** a `stellar.expert/explorer/public/account/`
+#### **3. Improved Balance Formatting**
+- **Correct decimals**: Fixed 2 decimals (.00)
+- **Thousand separators**: Properly expressed commas
+- **KALE Unit**: Clear currency identification
+- **Consistent format**: All holders with same formatting
 
-#### **4. Formato de Balances Mejorado**
-- **Decimales correctos**: 2 decimales fijos (.00)
-- **Separadores de miles**: Comas bien expresadas
-- **Unidad KALE**: Identificación clara de la moneda
-- **Formato consistente**: Todos los holders con el mismo formato
+#### **4. Optimized Code Structure**
+- **Slash Commands**: Implementation with SlashCommandBuilder
+- **Automatic registration**: Commands register on startup
+- **Interaction handling**: Robust response system
+- **Modular code**: Well-organized functions
 
-#### **5. Estructura de Código Optimizada**
-- **Slash Commands**: Implementación con `SlashCommandBuilder`
-- **Registro automático**: Comandos se registran al iniciar
-- **Manejo de interacciones**: Sistema robusto de respuestas
-- **Código modular**: Funciones bien organizadas
+#### **5. Multilingual System**
+- **Three supported languages**: Spanish, English, Portuguese
+- **Dynamic language change** per individual user
+- **Interactive buttons** with flags for language change
+- **Preference persistence** - each user maintains their language
 
-### 📊 Ejemplo de Salida Actualizada
+#### **6. Advanced Analytics Commands**
+- **`/rank [address]`**: Check position of any Stellar address
+- **`/stats`**: Global token statistics (supply, holders, distribution)
+- **`/alerts`**: Balance change alert system
+- **`/history [address]`**: Holdings change history
+
+#### **7. Enhanced `/top` Command**
+- **Configurable limit**: 1-25 holders (default: 5)
+- **Improved number formatting**: Uses 1️⃣, 2️⃣, etc. for positions 10+
+- **Price integration**: Daily posts include token price
+- **Better performance**: Optimized API calls and caching
+
+### 📊 Updated Output Example
 
 ```
-🏆 Ranking Top 5 Holders
+🏆 Top Holders Ranking
 
-🥇 1
+🥇 1️⃣
 [CDL74RF5BLYR2YBLCCI7F5FB6TPSCLKEJUBSD2RSVWZ4YHF3VMFAIGWA](https://stellar.expert/explorer/public/account/CDL74RF5BLYR2YBLCCI7F5FB6TPSCLKEJUBSD2RSVWZ4YHF3VMFAIGWA)
 💰 **244,905,600,010.00 KALE**
 
-🥈 2
+🥈 2️⃣
 [GARARLMQ64D6LUXYMSAR7I2S6DPNZ6LPR7QOVBO3Y5XPW25GR757TWVT](https://stellar.expert/explorer/public/account/GARARLMQ64D6LUXYMSAR7I2S6DPNZ6LPR7QOVBO3Y5XPW25GR757TWVT)
 💰 **105,600,244,131.07 KALE**
 ```
 
-## 🏗️ Arquitectura del Sistema
+## 🏗️ System Architecture
 
-### Estructura de Archivos
+### File Structure
 ```
 kale-discord-bot/
-├── index.js              # Archivo principal del bot
-├── package.json          # Dependencias y scripts
-├── .env                  # Variables de entorno (sensible)
-├── .gitignore           # Archivos a ignorar en git
-└── README.md            # Documentación
+├── index.js              # Main bot file
+├── package.json          # Dependencies and scripts
+├── .env                  # Environment variables (sensitive)
+├── .gitignore           # Files to ignore in git
+└── README.md            # Documentation
 ```
 
-### Flujo de Datos
+### Data Flow
 ```
-API hoops.finance → Bot Node.js → Procesamiento → Discord Webhook → Canal
+API hoops.finance → Node.js Bot → Processing → Discord Webhook → Channel
      ↓                    ↓              ↓              ↓
-  Datos Raw          Validación      Formateo      Publicación
+  Raw Data          Validation      Formatting      Publication
 ```
 
-## ⚙️ Mecanismos Internos
+## ⚙️ Internal Mechanisms
 
-### 1. Sistema de Obtención de Datos
-
+### 1. Data Retrieval System
 ```javascript
-// Función principal de obtención de datos
-async function getTopHolders() {
-    // 1. Llamada a la API de hoops.finance
+// Main data retrieval function
+async function getTopHolders(limit = 5) {
+    // 1. Call to hoops.finance API
     const response = await axios.get(KALE_API_URL);
-    
-    // 2. Validación de datos
+
+    // 2. Data validation
     if (!Array.isArray(holders) || holders.length === 0) {
         throw new Error('No holders data received from API');
     }
-    
-    // 3. Cálculo del supply total
+
+    // 3. Total supply calculation
     const totalSupply = holders.reduce((sum, holder) => sum + holder.balance, 0);
-    
-    // 4. Ordenamiento y formateo
+
+    // 4. Sorting and formatting
     const sortedHolders = holders
         .sort((a, b) => b.balance - a.balance)
-        .slice(0, TOP_LIMIT)
+        .slice(0, limit)
         .map(holder => {
-            // Cálculo de porcentajes y formateo
+            // Percentage calculation and formatting
             const percentage = ((holder.balance / totalSupply) * 100).toFixed(2);
             return {
                 address: `${holder.address.slice(0, 6)}...${holder.address.slice(-6)}`,
@@ -146,34 +158,77 @@ async function getTopHolders() {
 }
 ```
 
-### 2. Sistema de Embeds de Discord
-
+### 2. Discord Embeds System
 ```javascript
-// Creación de embeds optimizados
-async function getTopHoldersEmbed() {
+// Creation of optimized embeds
+async function getTopHoldersEmbed(userId, limit = 5) {
+    const holders = await getTopHolders(limit);
+
     const embed = new EmbedBuilder()
-        .setTitle('🏆 Ranking Top 5 Holders')
-        .setColor(3447003) // Color azul profesional
+        .setTitle(t(userId, 'embeds.topTitle'))
+        .setColor(3447003) // Professional blue color
         .setTimestamp();
 
     holders.forEach((holder, index) => {
-        let medal = index === 0 ? '🥇 1' : 
-                   index === 1 ? '🥈 2' : 
-                   index === 2 ? '🥉 3' : `${index + 1}️⃣`;
-        
+        let medal;
+        if (index === 0) medal = '🥇 1️⃣';
+        else if (index === 1) medal = '🥈 2️⃣';
+        else if (index === 2) medal = '🥉 3️⃣';
+        else {
+            const position = index + 1;
+            // Use combined number emojis for better formatting
+            if (position === 4) medal = '4️⃣';
+            else if (position === 5) medal = '5️⃣';
+            else if (position === 6) medal = '6️⃣';
+            else if (position === 7) medal = '7️⃣';
+            else if (position === 8) medal = '8️⃣';
+            else if (position === 9) medal = '9️⃣';
+            else if (position === 10) medal = '🔟';
+            else if (position === 11) medal = '1️⃣1️⃣';
+            else if (position === 12) medal = '1️⃣2️⃣';
+            else if (position === 13) medal = '1️⃣3️⃣';
+            else if (position === 14) medal = '1️⃣4️⃣';
+            else if (position === 15) medal = '1️⃣5️⃣';
+            else if (position === 16) medal = '1️⃣6️⃣';
+            else if (position === 17) medal = '1️⃣7️⃣';
+            else if (position === 18) medal = '1️⃣8️⃣';
+            else if (position === 19) medal = '1️⃣9️⃣';
+            else if (position === 20) medal = '2️⃣0️⃣';
+            else if (position === 21) medal = '2️⃣1️⃣';
+            else if (position === 22) medal = '2️⃣2️⃣';
+            else if (position === 23) medal = '2️⃣3️⃣';
+            else if (position === 24) medal = '2️⃣4️⃣';
+            else if (position === 25) medal = '2️⃣5️⃣';
+            else medal = `${position}️⃣`;
+        }
+
+        // Format balance with correct decimal places (KALE has 6 decimals)
+        const formattedBalance = (holder.rawBalance / 1000000).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        // Create Stellar Expert link
+        const stellarExpertLink = `[${holder.fullAddress}](https://stellar.expert/explorer/public/account/${holder.fullAddress})`;
+
         embed.addFields({
             name: medal,
-            value: `\`${holder.fullAddress}\`\n💰 **${holder.rawBalance.toLocaleString('en-US')}**`,
+            value: `${stellarExpertLink}\n💰 **${formattedBalance} KALE**`,
             inline: false
         });
     });
+
+    embed.setFooter({
+        text: t(userId, 'footer.dataUpdated')
+    });
+
+    return embed;
 }
 ```
 
-### 3. Sistema de Programación de Tareas
-
+### 3. Task Scheduling System
 ```javascript
-// Tareas programadas con node-cron
+// Scheduled tasks with node-cron
 cron.schedule('0 9 * * *', async () => {
     console.log('🕘 Running daily top holders update...');
     await postDailyTopHolders();
@@ -185,289 +240,147 @@ cron.schedule('0 18 * * *', async () => {
 });
 ```
 
-### 4. Sistema de Webhooks con Fallback
-
+### 4. Webhook System with Fallback
 ```javascript
 async function postDailyTopHolders() {
     try {
-        // Intento principal: Webhook
+        const topHoldersEmbed = await getTopHoldersEmbed('default');
+        const priceData = await getKalePrice();
+
+        // Create price embed
+        const priceEmbed = new EmbedBuilder()
+            .setTitle('🌿 Kale Token Price')
+            .setColor(0x00ff00)
+            .addFields(
+                { name: '💰 Current Price', value: `$${priceData.price}`, inline: true },
+                { name: '📈 24h Change', value: `${priceData.change24h}%`, inline: true },
+                { name: '💎 Market Cap', value: `$${priceData.marketCap}`, inline: true }
+            )
+            .setTimestamp();
+
+        // Main attempt: Webhook
         const response = await axios.post(WEBHOOK_URL, {
-            content: '🌿 **Daily Top Holders Update**',
-            embeds: [embed]
+            content: t('default', 'messages.dailyUpdate'),
+            embeds: [topHoldersEmbed, priceEmbed]
         });
-        
+
         if (response.status === 204) {
             console.log('✅ Posted via webhook');
         }
     } catch (error) {
-        // Fallback: Canal de Discord
+        // Fallback: Discord channel
         const channel = client.channels.cache.get(process.env.CHANNEL_ID);
         if (channel) {
-            await channel.send({ embeds: [embed] });
+            const topHoldersEmbed = await getTopHoldersEmbed('default');
+            const priceData = await getKalePrice();
+
+            const priceEmbed = new EmbedBuilder()
+                .setTitle('🌿 Kale Token Price')
+                .setColor(0x00ff00)
+                .addFields(
+                    { name: '💰 Current Price', value: `$${priceData.price}`, inline: true },
+                    { name: '📈 24h Change', value: `${priceData.change24h}%`, inline: true },
+                    { name: '💎 Market Cap', value: `$${priceData.marketCap}`, inline: true }
+                )
+                .setTimestamp();
+
+            await channel.send({
+                content: t('default', 'messages.dailyUpdate'),
+                embeds: [topHoldersEmbed, priceEmbed]
+            });
             console.log('✅ Fallback: Posted via channel');
         }
     }
 }
 ```
 
-## 🚀 Instalación Local
+## 🚀 Local Installation
 
-### Prerrequisitos
-- **Node.js** v16.0.0 o superior
-- **npm** v7.0.0 o superior
-- **Cuenta de Discord** con permisos de desarrollador
-- **Acceso a internet** para APIs
+### Prerequisites
+- Node.js v16.0.0 or higher
+- npm v7.0.0 or higher
+- Discord account with developer permissions
+- Internet access for APIs
 
-### Pasos de Instalación
+### Installation Steps
 
-1. **Clonar el repositorio**
+1. **Clone the repository**
 ```bash
-git clone <tu-repositorio>
+git clone <your-repository>
 cd kale-discord-bot
 ```
 
-2. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
-
-3. **Configurar variables de entorno**
+2. **Install dependencies**
 ```bash
-cp .env.example .env
-# Editar .env con tus valores
+npm install
 ```
 
-4. **Ejecutar el bot**
+3. **Configure environment variables**
+```bash
+cp .env.example .env
+# Edit .env with your values
+```
+
+4. **Run the bot**
 ```bash
 npm start
-# o
+# or
 node index.js
 ```
 
-## ⚙️ Configuración
+## ⚙️ Configuration
 
-### Variables de Entorno (.env)
-
+### Environment Variables (.env)
 ```env
-# Token del bot de Discord (OBLIGATORIO)
-DISCORD_TOKEN=tu_token_del_bot_aqui
+# Discord bot token (REQUIRED)
+DISCORD_TOKEN=your_bot_token_here
 
-# ID del canal de Discord (para fallback)
+# Discord channel ID (for fallback)
 CHANNEL_ID=1414030545083433001
 
-# Application ID para Slash Commands (OBLIGATORIO)
-CLIENT_ID=tu_application_id_aqui
+# Application ID for Slash Commands (REQUIRED)
+CLIENT_ID=your_application_id_here
 
-# Número de holders a mostrar (opcional, default: 5)
+# Number of holders to show (optional, default: 5)
 TOP_LIMIT=5
 
-# URL del webhook de Discord (opcional, para publicaciones directas)
+# Discord webhook URL (optional, for direct posts)
 WEBHOOK_URL=https://discord.com/api/webhooks/...
 ```
 
-### Configuración del Bot de Discord
+### Discord Bot Configuration
 
-1. **Crear aplicación en Discord**
-   - Ve a [Discord Developer Portal](https://discord.com/developers/applications)
-   - Crea nueva aplicación
-   - Nombre: "Kale Bot" (o el que prefieras)
+**Create application in Discord**
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Create new application
+3. Name: "Kale Bot" (or your preference)
 
-2. **Configurar el bot**
-   - Ve a la sección "Bot"
-   - Genera token y cópialo
-   - Habilita intents necesarios:
-     - ✅ **Message Content Intent** (para comandos)
-     - ✅ **Server Members Intent** (opcional)
+**Configure the bot**
+1. Go to "Bot" section
+2. Generate token and copy it
+3. Enable necessary intents:
+   - ✅ Message Content Intent (for commands)
+   - ✅ Server Members Intent (optional)
 
-3. **Invitar el bot al servidor**
-   - Ve a "OAuth2" → "URL Generator"
-   - Selecciona: `bot`, `Send Messages`, `Use Slash Commands`
-   - Copia la URL y úsala para invitar
+**Invite the bot to server**
+1. Go to "OAuth2" → "URL Generator"
+2. Select: bot, Send Messages, Use Slash Commands
+3. Copy URL and use it to invite
 
-## 🌐 Despliegue en Servidor
+## 🔌 APIs and Data Sources
 
-### Opción 1: VPS/Cloud Server (Recomendado)
+### Main API: hoops.finance
+**Endpoint:** `https://api.hoops.finance/tokens/{TOKEN_ADDRESS}/balances`
 
-#### Preparación del Servidor
-```bash
-# Actualizar sistema (Ubuntu/Debian)
-sudo apt update && sudo apt upgrade -y
+**Credit:** Credit shown in `/kale` and `/help` commands
 
-# Instalar Node.js
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+**Parameters:**
+- `excludezero=true` - Exclude zero balances
+- `excludeid=true` - Exclude unnecessary IDs
+- `excludetoken=true` - Exclude token metadata
+- `excludelastupdated=true` - Exclude timestamps
 
-# Instalar PM2 para gestión de procesos
-sudo npm install -g pm2
-
-# Instalar Git
-sudo apt install git -y
-```
-
-#### Despliegue del Bot
-```bash
-# Clonar repositorio
-git clone <tu-repositorio>
-cd kale-discord-bot
-
-# Instalar dependencias
-npm install --production
-
-# Configurar variables de entorno
-nano .env
-# Editar con tus valores
-
-# Iniciar con PM2
-pm2 start index.js --name "kale-bot"
-
-# Configurar auto-inicio
-pm2 startup
-pm2 save
-```
-
-#### Monitoreo con PM2
-```bash
-# Ver estado del bot
-pm2 status
-
-# Ver logs en tiempo real
-pm2 logs kale-bot
-
-# Reiniciar bot
-pm2 restart kale-bot
-
-# Detener bot
-pm2 stop kale-bot
-```
-
-### Opción 2: Docker
-
-#### Dockerfile
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY . .
-
-EXPOSE 3000
-
-CMD ["node", "index.js"]
-```
-
-#### docker-compose.yml
-```yaml
-version: '3.8'
-services:
-  kale-bot:
-    build: .
-    container_name: kale-discord-bot
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - ./logs:/app/logs
-```
-
-#### Comandos Docker
-```bash
-# Construir imagen
-docker build -t kale-bot .
-
-# Ejecutar contenedor
-docker run -d --name kale-bot --env-file .env kale-bot
-
-# Ver logs
-docker logs -f kale-bot
-
-# Detener
-docker stop kale-bot
-```
-
-### Opción 3: Heroku
-
-#### Configuración
-   ```bash
-# Instalar Heroku CLI
-npm install -g heroku
-
-# Login
-heroku login
-
-# Crear app
-heroku create kale-discord-bot
-
-# Configurar variables
-heroku config:set DISCORD_TOKEN=tu_token
-heroku config:set CHANNEL_ID=tu_canal_id
-
-# Desplegar
-git push heroku main
-```
-
-#### Procfile
-```
-worker: node index.js
-```
-
-## 📦 Dependencias Críticas
-
-### Dependencias Principales
-
-| Paquete | Versión | Propósito | Crítico |
-|---------|---------|-----------|---------|
-| `discord.js` | ^14.14.1 | Cliente de Discord | ✅ |
-| `axios` | ^1.6.2 | Cliente HTTP para APIs | ✅ |
-| `node-cron` | ^3.0.3 | Programación de tareas | ✅ |
-| `dotenv` | ^16.3.1 | Variables de entorno | ✅ |
-
-### Dependencias de Desarrollo
-
-| Paquete | Versión | Propósito |
-|---------|---------|-----------|
-| `nodemon` | ^3.0.0 | Auto-reload en desarrollo |
-| `eslint` | ^8.0.0 | Linting de código |
-
-### Análisis de Dependencias
-
-#### discord.js
-- **Función**: Interfaz principal con Discord
-- **Uso**: Cliente, eventos, embeds, mensajes
-- **Crítico**: Sin esto el bot no funciona
-
-#### axios
-- **Función**: Cliente HTTP para APIs externas
-- **Uso**: Obtener datos de hoops.finance y Jupiter
-- **Crítico**: Sin esto no hay datos de holders
-
-#### node-cron
-- **Función**: Programación de tareas temporales
-- **Uso**: Publicaciones automáticas diarias
-- **Crítico**: Sin esto no hay automatización
-
-#### dotenv
-- **Función**: Gestión de variables de entorno
-- **Uso**: Tokens, IDs, configuraciones sensibles
-- **Crítico**: Sin esto no hay configuración segura
-
-## 🔌 API y Fuentes de Datos
-
-### API Principal: hoops.finance
-
-**Endpoint**: `https://api.hoops.finance/tokens/{TOKEN_ADDRESS}/balances`
-
-**Reconocimiento**: Crédito mostrado en comandos `/kale` y `/help`
-
-**Parámetros**:
-- `excludezero=true` - Excluir balances cero
-- `excludeid=true` - Excluir IDs innecesarios
-- `excludetoken=true` - Excluir metadatos del token
-- `excludelastupdated=true` - Excluir timestamps
-
-**Respuesta**:
+**Response:**
 ```json
 [
   {
@@ -477,219 +390,178 @@ worker: node index.js
 ]
 ```
 
-### API Secundaria: Jupiter (Precios)
+### Secondary API: Jupiter (Prices)
+**Endpoint:** `https://price.jup.ag/v4/price?ids={TOKEN_ADDRESS}`
 
-**Endpoint**: `https://price.jup.ag/v4/price?ids={TOKEN_ADDRESS}`
+**Usage:** Get current token prices
 
-**Uso**: Obtener precios actuales del token
+### Kale Token
+- **Address:** `CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV`
+- **Blockchain:** Solana
+- **Type:** SPL Token
 
-### Token de Kale
+## 🎮 Available Commands
 
-**Dirección**: `CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV`
+### Slash Commands (Native Discord)
+| Command | Function | Example |
+|---------|----------|---------|
+| `/kale` | Shows available commands | `/kale` |
+| `/top [limit]` | Current holders ranking with Stellar Expert links | `/top` or `/top limit 15` |
+| `/price` | Current token price | `/price` |
+| `/farm` | Redirects to official Kale Farm page | `/farm` |
+| `/invite` | Generates link to invite bot to your server | `/invite` |
+| `/help` | Complete help | `/help` |
+| `/language` | Change bot language | `/language` |
+| `/rank [address]` | Position of specific Stellar address | `/rank address: YOUR_ADDRESS` |
+| `/stats` | Global token statistics | `/stats` |
+| `/alerts [action]` | Configure balance alerts | `/alerts action: list` |
+| `/history [address]` | Holdings change history | `/history address: YOUR_ADDRESS` |
 
-**Blockchain**: Stellar
+### Slash Command Features
+- ✅ **Autocomplete**: Discord automatically suggests commands
+- ✅ **Validation**: Parameters validated by Discord
+- ✅ **Native Interface**: Perfect integration with Discord UI
+- ✅ **Fewer Errors**: No writing or formatting issues
 
-**Tipo**: Stellar Asset
+### Detailed Command Descriptions
 
-## 🎮 Comandos Disponibles
+**🌿 /kale - Main Commands**
+Shows a quick list of all available bot commands.
 
-### Slash Commands (Nativos de Discord)
+**🏆 /top [limit] - Holders Ranking**
+- Shows top holders of KALE (configurable 1-25, default 5)
+- Clickable links to Stellar Expert for verification
+- Balances formatted with correct decimals
+- Medals for top 3 positions (🥇🥈🥉)
+- Numbers with proper emoji formatting (1️⃣2️⃣3️⃣...)
 
-| Comando | Función | Ejemplo |
-|---------|---------|---------|
-| `/kale` | Muestra comandos disponibles | `/kale` |
-| `/top` | Ranking actual de holders con enlaces a Stellar Expert | `/top` |
-| `/price` | Precio actual del token | `/price` |
-| `/farm` | Redirige a la página oficial de Kale Farm | `/farm` |
-| `/invite` | Genera enlace para invitar el bot a tu servidor | `/invite` |
-| `/help` | Ayuda completa con botones de idioma | `/help` |
-| `/language` | Cambia el idioma del bot (ES/EN/PT) | `/language` |
+**💰 /price - Token Price**
+- Current KALE price in USD
+- 24-hour price change
+- Token market cap
+- Real-time data from Jupiter API
 
-### Características de los Slash Commands
-- ✅ **Autocompletado**: Discord sugiere comandos automáticamente
-- ✅ **Validación**: Parámetros validados por Discord
-- ✅ **Interfaz Nativa**: Integración perfecta con la UI de Discord
-- ✅ **Menos Errores**: No hay problemas de escritura o formato
+**🌾 /farm - Kale Farm**
+- Interactive button to access official farming page
+- Redirects to kalefarm.xyz with one click
+- More intuitive and professional interface
 
-### Descripción Detallada de Comandos
+**🔗 /invite - Invite Bot**
+- Interactive button to generate invitation link
+- Add bot to your server with one click
+- Minimum required permissions (send messages, slash commands, embeds)
+- Bot features list
 
-#### 🌿 `/kale` - Comandos Principales
-Muestra una lista rápida de todos los comandos disponibles del bot.
+**🌐 /language - Language Change**
+- Interactive buttons with flags for language selection
+- Supports Spanish 🇪🇸, English 🇺🇸, Portuguese 🇧🇷
+- Individual user preferences
+- Persistent language selection
 
-#### 🏆 `/top` - Ranking de Holders
-- Muestra el top 5 de holders de KALE
-- Enlaces clickeables a Stellar Expert para verificación
-- Balances formateados con decimales correctos
-- Medallas para las primeras 3 posiciones
+**🏆 /rank [address] - Address Position**
+- Check position of any Stellar address in ranking
+- Shows balance, percentage, and Stellar Expert link
+- Validates Stellar address format
+- Real-time position calculation
 
-#### 💰 `/price` - Precio del Token
-- Precio actual de KALE en USD
-- Cambio de precio en 24 horas
-- Market cap del token
-- Datos en tiempo real desde Jupiter API
+**📊 /stats - Global Statistics**
+- Total KALE supply
+- Total active holders
+- Top 10% and 100% distribution
+- Average balance statistics
+- Market concentration analysis
 
-#### 🌾 `/farm` - Kale Farm
-- **Botón interactivo** para acceder a la página oficial de farmeo
-- Redirige a [kalefarm.xyz](https://kalefarm.xyz/) con un solo clic
-- Nota sobre futuras implementaciones de farmeo directo en Discord
-- Interfaz más intuitiva y profesional
+**🔔 /alerts [action] - Balance Alerts**
+- Configure alerts for balance changes
+- Actions: list, add, remove alerts
+- Customizable percentage thresholds
+- Address-specific monitoring
 
-#### 🔗 `/invite` - Invitar Bot
-- **Botón interactivo** para generar enlace de invitación
-- Agregar el bot a tu servidor con un solo clic
-- Permisos mínimos requeridos (enviar mensajes, comandos slash, embeds)
-- Lista de características del bot
+**📈 /history [address] - Holdings History**
+- View holdings change history
+- Transaction tracking
+- Balance evolution over time
+- External links to Stellar Expert
 
-#### ❓ `/help` - Ayuda Completa
-- Muestra todos los comandos disponibles en formato embed
-- Información adicional sobre el bot
-- **Botones de cambio de idioma** integrados
-- **Crédito a Hoops Finance API** en el footer
-
-#### 🌐 `/language` - Cambio de Idioma
-- **Comando dedicado** para cambiar el idioma del bot
-- **Tres idiomas disponibles**: Español, Inglés y Portugués
-- **Botones interactivos** con banderas para fácil identificación
-- **Persistencia por usuario** - cada usuario mantiene su preferencia
-- **Respuestas privadas** - los cambios son solo visibles para ti
-
-## 🌐 Sistema Multilingüe
-
-### Idiomas Soportados
-
-| Idioma | Código | Bandera | Estado |
-|--------|--------|---------|--------|
-| **Español** | `es` | 🇪🇸 | ✅ Por defecto |
-| **English** | `en` | 🇺🇸 | ✅ Completo |
-| **Português** | `pt` | 🇧🇷 | ✅ Completo |
-
-### Características del Sistema de Idiomas
-
-#### **1. Cambio Dinámico de Idioma**
-- **Por usuario individual**: Cada usuario puede elegir su idioma preferido
-- **Persistencia automática**: El idioma se recuerda entre sesiones
-- **Cambio instantáneo**: Los comandos se actualizan inmediatamente
-- **Respuestas privadas**: Los cambios de idioma son solo visibles para el usuario
-
-#### **2. Traducciones Completas**
-- **Todos los comandos**: `/kale`, `/top`, `/price`, `/farm`, `/invite`, `/help`, `/language`
-- **Mensajes del sistema**: Errores, confirmaciones, notificaciones
-- **Embeds y botones**: Títulos, descripciones, textos de botones
-- **Footers informativos**: Créditos y información adicional
-
-#### **3. Interfaz Intuitiva**
-- **Botones con banderas**: Identificación visual fácil
-- **Comando `/language`**: Acceso directo al cambio de idioma
-- **Botones en `/help`**: Cambio rápido desde la ayuda
-- **Títulos multilingües**: Interfaz adaptada a cada idioma
-
-#### **4. Implementación Técnica**
+### Command Implementation
 ```javascript
-// Sistema de traducciones
-const translations = {
-    es: { /* traducciones en español */ },
-    en: { /* traducciones en inglés */ },
-    pt: { /* traducciones en portugués */ }
-};
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) return;
 
-// Función de traducción
-function t(userId, key) {
-    const lang = getUserLanguage(userId);
-    return translations[lang][key];
-}
-
-// Almacenamiento por usuario
-const userLanguages = new Map();
-```
-
-### Cómo Usar el Sistema de Idiomas
-
-1. **Usar `/language`** para ver todas las opciones de idioma
-2. **Hacer clic en la bandera** del idioma deseado
-3. **Confirmación privada** del cambio de idioma
-4. **Todos los comandos** se mostrarán en el idioma seleccionado
-5. **Preferencia guardada** automáticamente para futuras interacciones
-
-### Implementación de Comandos
-
-```javascript
-client.on(Events.MessageCreate, async message => {
-    if (message.author.bot) return;
-
-    if (message.content === '!top') {
+    if (interaction.commandName === 'top') {
         try {
-            const embed = await getTopHoldersEmbed();
-            await message.reply({ embeds: [embed] });
+            await interaction.deferReply();
+            const limit = Math.min(interaction.options.getInteger('limit') || 5, 25);
+            const embed = await getTopHoldersEmbed(interaction.user.id, limit);
+            await interaction.editReply({ embeds: [embed] });
         } catch (error) {
-            await message.reply('❌ Error fetching data');
+            console.error('Error fetching top holders:', error);
+            await interaction.editReply(t(interaction.user.id, 'messages.errorFetchingHolders'));
         }
     }
 });
 ```
 
-## ⏰ Programación de Tareas
+## ⏰ Task Scheduling
 
-### Horarios Configurados
+### Configured Schedules
+- **9:00 AM UTC**: Morning publication
+- **6:00 PM UTC**: Evening publication
 
-- **9:00 AM UTC**: Publicación matutina
-- **6:00 PM UTC**: Publicación vespertina
-
-### Expresiones Cron
-
+### Cron Expressions
 ```javascript
-// Todos los días a las 9:00 AM
+// Every day at 9:00 AM
 '0 9 * * *'
 
-// Todos los días a las 6:00 PM  
+// Every day at 6:00 PM
 '0 18 * * *'
 
-// Cada hora (para testing)
+// Every hour (for testing)
 '0 * * * *'
 
-// Cada 30 minutos (para testing)
+// Every 30 minutes (for testing)
 '*/30 * * * *'
 ```
 
-### Personalización de Horarios
-
+### Schedule Customization
 ```javascript
-// Cambiar a cada 6 horas
+// Change to every 6 hours
 cron.schedule('0 */6 * * *', async () => {
     await postDailyTopHolders();
 });
 
-// Solo días laborables
+// Only weekdays
 cron.schedule('0 9 * * 1-5', async () => {
     await postDailyTopHolders();
 });
 ```
 
-## 🛡️ Manejo de Errores
+## 🛡️ Error Handling
 
-### Estrategias de Error Handling
+### Error Handling Strategies
 
-#### 1. Errores de API
+#### 1. API Errors
 ```javascript
 try {
     const response = await axios.get(API_URL);
-    // Procesar datos
+    // Process data
 } catch (error) {
     console.error('API Error:', error.message);
-    // Fallback o retry
+    // Fallback or retry
 }
 ```
 
-#### 2. Errores de Discord
+#### 2. Discord Errors
 ```javascript
 try {
     await channel.send({ embeds: [embed] });
 } catch (error) {
     console.error('Discord Error:', error);
-    // Intentar webhook como fallback
+    // Try webhook as fallback
 }
 ```
 
-#### 3. Errores de Conexión
+#### 3. Connection Errors
 ```javascript
 client.on('error', error => {
     console.error('Discord Client Error:', error);
@@ -700,8 +572,7 @@ client.on('disconnect', () => {
 });
 ```
 
-### Sistema de Reintentos
-
+### Retry System
 ```javascript
 async function retryOperation(operation, maxRetries = 3) {
     for (let i = 0; i < maxRetries; i++) {
@@ -715,12 +586,11 @@ async function retryOperation(operation, maxRetries = 3) {
 }
 ```
 
-## 📊 Monitoreo y Logs
+## 📊 Monitoring and Logs
 
-### Sistema de Logging
-
+### Logging System
 ```javascript
-// Logs estructurados
+// Structured logs
 console.log(`🌿 Kale Bot Ready! Logged in as ${client.user.tag}`);
 console.log(`📊 Will post top ${TOP_LIMIT} holders daily`);
 console.log(`📡 Fetching Kale holders data from API...`);
@@ -728,89 +598,86 @@ console.log(`✅ Successfully fetched ${holders.length} top holders`);
 console.log(`✅ Daily top holders posted successfully via webhook`);
 ```
 
-### Métricas Importantes
+### Important Metrics
+- Bot uptime
+- Update frequency
+- API errors
+- Response latency
+- Number of holders processed
 
-- **Uptime del bot**
-- **Frecuencia de actualizaciones**
-- **Errores de API**
-- **Latencia de respuestas**
-- **Número de holders procesados**
+### Monitoring Tools
 
-### Herramientas de Monitoreo
-
-#### PM2 Monitoring
+**PM2 Monitoring**
 ```bash
-# Dashboard web
+# Web dashboard
 pm2 monit
 
-# Métricas en tiempo real
+# Real-time metrics
 pm2 show kale-bot
 ```
 
-#### Logs Externos
+**External Logs**
 ```bash
-# Enviar logs a archivo
+# Send logs to file
 pm2 start index.js --name kale-bot --log /var/log/kale-bot.log
 
-# Rotación de logs
+# Log rotation
 pm2 install pm2-logrotate
 ```
 
 ## 🔧 Troubleshooting
 
-### Problemas Comunes
+### Common Issues
 
 #### 1. "TokenInvalid" Error
-**Causa**: Token de Discord incorrecto
-**Solución**: 
-- Verificar token en .env
-- Regenerar token en Discord Developer Portal
-- Asegurar que no hay espacios extra
+**Cause:** Incorrect Discord token
+**Solution:**
+- Verify token in .env
+- Regenerate token in Discord Developer Portal
+- Ensure no extra spaces
 
 #### 2. "Used disallowed intents" Error
-**Causa**: Intents no habilitados
-**Solución**:
-- Ir a Discord Developer Portal
-- Habilitar "Message Content Intent"
-- Reiniciar el bot
+**Cause:** Intents not enabled
+**Solution:**
+- Go to Discord Developer Portal
+- Enable "Message Content Intent"
+- Restart the bot
 
 #### 3. "Channel not found" Error
-**Causa**: CHANNEL_ID incorrecto
-**Solución**:
-- Verificar ID del canal
-- Asegurar que el bot tiene permisos
-- Usar webhook como alternativa
+**Cause:** Incorrect CHANNEL_ID
+**Solution:**
+- Verify channel ID
+- Ensure bot has permissions
+- Use webhook as alternative
 
 #### 4. API Rate Limiting
-**Causa**: Demasiadas llamadas a la API
-**Solución**:
-- Implementar delays entre llamadas
-- Usar cache para datos
-- Monitorear límites de API
+**Cause:** Too many API calls
+**Solution:**
+- Implement delays between calls
+- Use cache for data
+- Monitor API limits
 
-### Comandos de Diagnóstico
-
-   ```bash
-# Verificar estado del bot
+### Diagnostic Commands
+```bash
+# Check bot status
 pm2 status kale-bot
 
-# Ver logs en tiempo real
+# View real-time logs
 pm2 logs kale-bot --lines 100
 
-# Verificar conectividad
+# Check connectivity
 curl -I https://api.hoops.finance/tokens/CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV/balances
 
-# Verificar webhook
+# Check webhook
 curl -X POST https://discord.com/api/webhooks/YOUR_WEBHOOK_URL
 ```
 
-### Logs de Debug
-
+### Debug Logs
 ```javascript
-// Habilitar logs detallados
+// Enable detailed logs
 process.env.DEBUG = 'discord.js:*';
 
-// Logs personalizados
+// Custom logs
 console.log('🔍 Debug:', {
     holdersCount: holders.length,
     totalSupply: totalSupply,
@@ -818,33 +685,26 @@ console.log('🔍 Debug:', {
 });
 ```
 
-## 🤝 Contribución
+## 🤝 Contribution
 
-### Estructura para Contribuciones
+### Contribution Structure
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Make changes and commits
+4. Push to branch: `git push origin feature/new-feature`
+5. Create Pull Request
 
-1. **Fork del repositorio**
-2. **Crear rama feature**: `git checkout -b feature/nueva-funcionalidad`
-3. **Hacer cambios y commits**
-4. **Push a la rama**: `git push origin feature/nueva-funcionalidad`
-5. **Crear Pull Request**
+### Areas for Improvement
+- Data cache to reduce API calls
+- Advanced metrics (charts, statistics)
+- Discord slash commands
+- Push notifications for important changes
+- Web dashboard for monitoring
+- Multi-token support
 
-### Áreas de Mejora
-
-- [x] **Sistema multilingüe** (Español, Inglés, Portugués) ✅ **COMPLETADO**
-- [x] **Comandos slash** de Discord ✅ **COMPLETADO**
-- [x] **Botones interactivos** para cambio de idioma ✅ **COMPLETADO**
-- [ ] **Cache de datos** para reducir llamadas a API
-- [ ] **Métricas avanzadas** (gráficos, estadísticas)
-- [ ] **Notificaciones push** para cambios importantes
-- [ ] **Dashboard web** para monitoreo
-- [ ] **Soporte multi-token**
-- [ ] **Más idiomas** (Francés, Alemán, Italiano)
-- [ ] **Base de datos** para persistencia de preferencias de idioma
-
-### Estándares de Código
-
+### Code Standards
 ```javascript
-// Usar async/await
+// Use async/await
 async function getData() {
     try {
         const response = await api.call();
@@ -855,29 +715,26 @@ async function getData() {
     }
 }
 
-// Documentar funciones
+// Document functions
 /**
- * Obtiene los top holders del token Kale
- * @param {number} limit - Número de holders a retornar
- * @returns {Promise<Array>} Array de holders ordenados
+ * Gets top Kale token holders
+ * @param {number} limit - Number of holders to return
+ * @returns {Promise<Array>} Sorted holders array
  */
 async function getTopHolders(limit = 5) {
-    // Implementación
+    // Implementation
 }
 ```
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
+This project is under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Soporte
+## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Klorenn/topkale)
-- **Discord**: [Servidor de Soporte](https://discord.gg/hFHaSBr3)
-- **Email**: pau@telluscoop.com
+**Discord:** [https://discord.gg/bDakpsnCzA](https://discord.gg/bDakpsnCzA)  
+**Email:** pau@telluscoop.com
 
----
+## 🌿 Enjoy your Kale bot! 🚀
 
-**🌿 ¡Disfruta tu bot de Kale!** 🚀
-
-*Última actualización: $(date)*
+**Last update:** September, 2025

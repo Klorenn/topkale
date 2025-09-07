@@ -1,23 +1,18 @@
-# Archivos sensibles y configuración
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
 .env
 .env.local
-.env.development
-.env.production
-.env.test
-config.json
-secrets.json
-credentials.json
-
-# Tokens y claves
-*.key
-*.pem
-*.p12
-*.pfx
-tokens.txt
-api-keys.txt
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Logs
-logs/
+logs
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -37,36 +32,15 @@ coverage/
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage
-.grunt
-
-# Bower dependency directory
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons
-build/Release
-
 # Dependency directories
 node_modules/
 jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
 
 # Optional eslint cache
 .eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
 
 # Optional REPL history
 .node_repl_history
@@ -81,35 +55,33 @@ jspm_packages/
 .env
 .env.test
 
-# parcel-bundler cache
+# parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
 
-# Next.js build output
+# next.js build output
 .next
 
-# Nuxt.js build / generate output
+# nuxt.js build output
 .nuxt
-dist
 
-# Gatsby files
-.cache/
-public
+# vuepress build output
+.vuepress/dist
 
-# Storybook build outputs
-.out
-.storybook-out
+# Serverless directories
+.serverless/
 
-# Temporary folders
-tmp/
-temp/
+# FuseBox cache
+.fusebox/
 
-# Editor directories and files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
 
 # OS generated files
 .DS_Store
@@ -120,48 +92,13 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# PM2 files
-.pm2/
-ecosystem.config.js
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Docker
-.dockerignore
-docker-compose.override.yml
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Backup files
-*.bak
-*.backup
-*.old
-
-# Test files
-test-results/
-coverage/
-
-# Build outputs
-build/
-dist/
-out/
-
-# Package manager lock files (opcional - descomenta si quieres ignorarlos)
-# package-lock.json
-# yarn.lock
-
-# Archivos específicos del bot de Discord
-bot-config.json
-discord-tokens.txt
-webhook-urls.txt
-
-# Archivos de desarrollo
-dev-scripts/
-test-files/
-*.test.js
-*.spec.js
-
-# Archivos de configuración local
-local-config.js
-dev.env
+# Temporary files
+tmp/
+temp/
