@@ -955,7 +955,8 @@ async function getTopHolders(limit = TOP_LIMIT) {
             .slice(0, limit)
             .map(holder => {
                 const percentage = ((holder.balance / totalSupply) * 100).toFixed(2);
-                const formattedBalance = holder.balance.toLocaleString('en-US');
+                const balanceInKale = holder.balance / 1000000;
+                const formattedBalance = balanceInKale.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 
                 return {
                     address: `${holder.address.slice(0, 6)}...${holder.address.slice(-6)}`,
@@ -1048,10 +1049,8 @@ async function getWalletInfo(address) {
         const totalSupply = walletHolders.reduce((sum, h) => sum + h.balance, 0);
         
         const percentage = ((holder.balance / totalSupply) * 100).toFixed(4);
-        const formattedBalance = (holder.balance / 1000000).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+        const balanceInKale = holder.balance / 1000000;
+        const formattedBalance = balanceInKale.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
         // Find position in ranking
         const sortedHolders = walletHolders.sort((a, b) => b.balance - a.balance);
@@ -1101,11 +1100,9 @@ async function getGlobalStats() {
         const priceData = await getKalePrice();
         const marketCap = (parseFloat(priceData.price) * totalSupply / 1000000).toFixed(0);
         
+        const totalSupplyInKale = totalSupply / 1000000;
         return {
-            totalSupply: (totalSupply / 1000000).toLocaleString('en-US', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }),
+            totalSupply: totalSupplyInKale.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
             totalHolders: totalHolders.toLocaleString('en-US'),
             marketCap: marketCap,
             top10Percentage,
@@ -1168,10 +1165,8 @@ async function getTopHoldersEmbed(userId, limit = 5) {
         }
         
         // Format balance with correct decimal places (KALE has 6 decimals)
-        const formattedBalance = (holder.rawBalance / 1000000).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+        const balanceInKale = holder.rawBalance / 1000000;
+        const formattedBalance = balanceInKale.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         
         // Create Stellar Expert link
         const stellarExpertLink = `[${holder.fullAddress}](https://stellar.expert/explorer/public/account/${holder.fullAddress})`;

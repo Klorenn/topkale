@@ -626,10 +626,8 @@ async function getTopHoldersEmbed(userId) {
         else medal = `${index + 1}️⃣`;
         
         // Format balance with correct decimal places (KALE has 6 decimals)
-        const formattedBalance = (holder.rawBalance / 1000000).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+        const balanceInKale = holder.rawBalance / 1000000;
+        const formattedBalance = balanceInKale.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         
         // Create Stellar Expert link
         const stellarExpertLink = `[${holder.fullAddress}](https://stellar.expert/explorer/public/account/${holder.fullAddress})`;
