@@ -737,4 +737,4 @@ This project is under the MIT License - see the [LICENSE](LICENSE) file for deta
 
 ## 🌿 Enjoy your Kale bot! 🚀
 
-**Last update:** September, 2025
+**Last update:** September 2025
