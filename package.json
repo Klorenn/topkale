@@ -8,8 +8,8 @@
     "dev": "node index.js"
   },
   "keywords": ["discord", "bot", "nodejs"],
-  "author": "",
-  "license": "ISC",
+  "author": "Pau Telluscoop",
+  "license": "MIT",
   "dependencies": {
     "discord.js": "^14.14.1",
     "axios": "^1.6.2",
