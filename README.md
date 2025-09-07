@@ -132,15 +132,15 @@ API hoops.finance → Node.js Bot → Processing → Discord Webhook → Channel
 async function getTopHolders(limit = 5) {
     // 1. Call to hoops.finance API
     const response = await axios.get(KALE_API_URL);
-
+    
     // 2. Data validation
     if (!Array.isArray(holders) || holders.length === 0) {
         throw new Error('No holders data received from API');
     }
-
+    
     // 3. Total supply calculation
     const totalSupply = holders.reduce((sum, holder) => sum + holder.balance, 0);
-
+    
     // 4. Sorting and formatting
     const sortedHolders = holders
         .sort((a, b) => b.balance - a.balance)
@@ -210,7 +210,7 @@ async function getTopHoldersEmbed(userId, limit = 5) {
 
         // Create Stellar Expert link
         const stellarExpertLink = `[${holder.fullAddress}](https://stellar.expert/explorer/public/account/${holder.fullAddress})`;
-
+        
         embed.addFields({
             name: medal,
             value: `${stellarExpertLink}\n💰 **${formattedBalance} KALE**`,
@@ -263,7 +263,7 @@ async function postDailyTopHolders() {
             content: t('default', 'messages.dailyUpdate'),
             embeds: [topHoldersEmbed, priceEmbed]
         });
-
+        
         if (response.status === 204) {
             console.log('✅ Posted via webhook');
         }
@@ -311,9 +311,9 @@ cd kale-discord-bot
 ```
 
 2. **Install dependencies**
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
 3. **Configure environment variables**
 ```bash
@@ -658,7 +658,7 @@ pm2 install pm2-logrotate
 - Monitor API limits
 
 ### Diagnostic Commands
-```bash
+   ```bash
 # Check bot status
 pm2 status kale-bot
 
