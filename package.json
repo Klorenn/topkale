@@ -1,43 +1,37 @@
 {
-  "name": "kale-discord-bot",
-  "version": "1.1.0",
-  "description": "A Discord bot for monitoring Kale token holders on Stellar blockchain",
-  "main": "index.js",
+  "name": "kale-bot-website",
+  "version": "1.0.0",
+  "description": "Página web para el bot de Discord Kale - Monitoreo de top holders en Stellar",
+  "private": true,
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "test": "node test-discord.js",
-    "test:preview": "node test-discord.js --preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.0.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "20.10.5",
+    "@types/react": "18.2.45",
+    "@types/react-dom": "18.2.18",
+    "eslint": "8.56.0",
+    "eslint-config-next": "14.0.4",
+    "typescript": "5.3.3"
   },
   "keywords": [
     "discord",
     "bot",
-    "nodejs",
-    "stellar",
     "kale",
+    "stellar",
     "cryptocurrency",
-    "blockchain"
+    "blockchain",
+    "nextjs"
   ],
   "author": "Pau Koh",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Klorenn/topkale.git"
-  },
-  "homepage": "https://github.com/Klorenn/topkale#readme",
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  },
-  "dependencies": {
-    "axios": "^1.6.2",
-    "discord.js": "^14.14.1",
-    "dotenv": "^16.3.1",
-    "node-cron": "^3.0.3",
-    "puppeteer": "^22.0.0",
-    "stellar-sdk": "^11.3.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10"
-  }
+  "license": "MIT"
 }
