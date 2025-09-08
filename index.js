@@ -372,6 +372,16 @@ const API_ENDPOINTS = [
 
 const TOP_LIMIT = parseInt(process.env.TOP_LIMIT) || 5;
 
+// Cache system for better performance
+const cache = {
+    holders: null,
+    lastUpdate: 0,
+    price: null,
+    priceLastUpdate: 0,
+    CACHE_DURATION: 30000, // 30 seconds cache
+    PRICE_CACHE_DURATION: 60000 // 1 minute cache for price
+};
+
 // Slash commands
 const commands = [
     new SlashCommandBuilder()
@@ -918,6 +928,13 @@ function isValidStellarAddress(address) {
 
 // Function to get top holders data with fallback APIs
 async function getTopHolders(limit = TOP_LIMIT) {
+    // Check cache first
+    const now = Date.now();
+    if (cache.holders && (now - cache.lastUpdate) < cache.CACHE_DURATION) {
+        console.log('📋 Using cached holders data');
+        return cache.holders.slice(0, limit);
+    }
+    
     let lastError = null;
     
     for (let i = 0; i < API_ENDPOINTS.length; i++) {
@@ -926,7 +943,7 @@ async function getTopHolders(limit = TOP_LIMIT) {
             console.log(`📡 Trying API endpoint ${i + 1}/${API_ENDPOINTS.length}: ${apiUrl.split('/')[2]}`);
             
             const response = await axios.get(apiUrl, {
-                timeout: 10000, // 10 second timeout
+                timeout: 5000, // Reduced timeout to 5 seconds for faster response
                 headers: {
                     'User-Agent': 'Kale-Bot/1.0'
                 }
@@ -996,6 +1013,11 @@ async function getTopHolders(limit = TOP_LIMIT) {
                 });
             
             console.log(`✅ Successfully fetched ${sortedHolders.length} top holders from API endpoint ${i + 1}`);
+            
+            // Cache the results
+            cache.holders = sortedHolders;
+            cache.lastUpdate = now;
+            
             return sortedHolders;
             
         } catch (error) {
@@ -1017,10 +1039,17 @@ async function getTopHolders(limit = TOP_LIMIT) {
 
 // Function to get Kale price from API
 async function getKalePrice() {
+    // Check cache first
+    const now = Date.now();
+    if (cache.price && (now - cache.priceLastUpdate) < cache.PRICE_CACHE_DURATION) {
+        console.log('📋 Using cached price data');
+        return cache.price;
+    }
+    
     try {
         // Try Jupiter API first
         const priceUrl = `https://price.jup.ag/v4/price?ids=${KALE_TOKEN_ADDRESS}`;
-        const response = await axios.get(priceUrl, { timeout: 10000 });
+        const response = await axios.get(priceUrl, { timeout: 5000 });
         const priceData = response.data.data[KALE_TOKEN_ADDRESS];
         
         if (!priceData) {
@@ -1031,11 +1060,17 @@ async function getKalePrice() {
             (priceData.priceChange24h * 100).toFixed(2) : '0.00';
         const change24hFormatted = change24h.startsWith('-') ? change24h : `+${change24h}`;
         
-        return {
+        const priceResult = {
             price: priceData.price.toFixed(8),
             change24h: change24hFormatted,
             marketCap: 'N/A' // Would need additional API call for market cap
         };
+        
+        // Cache the results
+        cache.price = priceResult;
+        cache.priceLastUpdate = now;
+        
+        return priceResult;
         
     } catch (error) {
         console.error('❌ Error fetching price from Jupiter API:', error.message);

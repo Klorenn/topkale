@@ -274,6 +274,13 @@ const API_ENDPOINTS = [
 ];
 const TOP_LIMIT = parseInt(process.env.TOP_LIMIT) || 5;
 
+// Cache system for better performance
+const cache = {
+    holders: null,
+    lastUpdate: 0,
+    CACHE_DURATION: 30000 // 30 seconds cache
+};
+
 // Slash commands
 const commands = [
     new SlashCommandBuilder()
@@ -522,6 +529,13 @@ function isValidStellarAddress(address) {
 
 // Function to get top holders data with fallback APIs
 async function getTopHolders() {
+    // Check cache first
+    const now = Date.now();
+    if (cache.holders && (now - cache.lastUpdate) < cache.CACHE_DURATION) {
+        console.log('📋 Using cached holders data');
+        return cache.holders;
+    }
+    
     let lastError = null;
     
     for (let i = 0; i < API_ENDPOINTS.length; i++) {
@@ -530,7 +544,7 @@ async function getTopHolders() {
             console.log(`📡 Trying API endpoint ${i + 1}/${API_ENDPOINTS.length}: ${apiUrl.split('/')[2]}`);
             
             const response = await axios.get(apiUrl, {
-                timeout: 10000, // 10 second timeout
+                timeout: 5000, // Reduced timeout to 5 seconds for faster response
                 headers: {
                     'User-Agent': 'Kale-Bot/1.0'
                 }
@@ -600,6 +614,11 @@ async function getTopHolders() {
                 });
             
             console.log(`✅ Successfully fetched ${sortedHolders.length} top holders from API endpoint ${i + 1}`);
+            
+            // Cache the results
+            cache.holders = sortedHolders;
+            cache.lastUpdate = now;
+            
             return sortedHolders;
             
         } catch (error) {
