@@ -4,52 +4,9 @@ const cron = require('node-cron');
 const http = require('http');
 require('dotenv').config();
 
-// Health check server for Railway
+// Health check server for Railway - will be initialized after Discord bot is ready
+let healthServer = null;
 const PORT = process.env.PORT || 3000;
-console.log(`🔧 Configurando servidor en puerto: ${PORT}`);
-
-const server = http.createServer((req, res) => {
-    console.log(`📡 Health check request: ${req.method} ${req.url} from ${req.connection.remoteAddress}`);
-    
-    if (req.url === '/health' || req.url === '/') {
-        res.writeHead(200, { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type'
-        });
-        res.end(JSON.stringify({ 
-            status: 'healthy', 
-            bot: 'Kale Bot', 
-            timestamp: new Date().toISOString(),
-            uptime: process.uptime(),
-            port: PORT,
-            env: process.env.NODE_ENV || 'development'
-        }));
-    } else {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Not found', path: req.url }));
-    }
-});
-
-// Try to listen on the port
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🏥 Health check server running on port ${PORT}`);
-    console.log(`🌐 Health check available at http://0.0.0.0:${PORT}/health`);
-    console.log(`🔗 Railway healthcheck URL: http://localhost:${PORT}/health`);
-});
-
-server.on('error', (err) => {
-    console.error('❌ Health check server error:', err);
-    console.error('❌ Error details:', err.code, err.errno, err.syscall);
-    
-    // Try alternative port
-    const altPort = 8080;
-    console.log(`🔄 Trying alternative port: ${altPort}`);
-    server.listen(altPort, '0.0.0.0', () => {
-        console.log(`🏥 Health check server running on alternative port ${altPort}`);
-    });
-});
 
 // Validate required environment variables
 const requiredEnvVars = ['DISCORD_TOKEN', 'CLIENT_ID'];
@@ -515,11 +472,67 @@ const commands = [
     }
 })();
 
+// Function to initialize health check server
+function initializeHealthServer() {
+    if (healthServer) {
+        console.log('🏥 Health server already initialized');
+        return;
+    }
+
+    console.log(`🔧 Configurando servidor de healthcheck en puerto: ${PORT}`);
+
+    healthServer = http.createServer((req, res) => {
+        console.log(`📡 Health check request: ${req.method} ${req.url} from ${req.connection.remoteAddress}`);
+        
+        if (req.url === '/health' || req.url === '/') {
+            res.writeHead(200, { 
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            });
+            res.end(JSON.stringify({ 
+                status: 'healthy', 
+                bot: 'Kale Bot', 
+                timestamp: new Date().toISOString(),
+                uptime: process.uptime(),
+                port: PORT,
+                env: process.env.NODE_ENV || 'development'
+            }));
+        } else {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Not found', path: req.url }));
+        }
+    });
+
+    // Try to listen on the port
+    healthServer.listen(PORT, '0.0.0.0', () => {
+        console.log(`🏥 Health check server running on port ${PORT}`);
+        console.log(`🌐 Health check available at http://0.0.0.0:${PORT}/health`);
+        console.log(`🔗 Railway healthcheck URL: http://localhost:${PORT}/health`);
+    });
+
+    healthServer.on('error', (err) => {
+        console.error('❌ Health check server error:', err);
+        console.error('❌ Error details:', err.code, err.errno, err.syscall);
+        
+        // Try alternative port
+        const altPort = 8080;
+        console.log(`🔄 Trying alternative port: ${altPort}`);
+        healthServer.listen(altPort, '0.0.0.0', () => {
+            console.log(`🏥 Health check server running on alternative port ${altPort}`);
+        });
+    });
+}
+
 // When the client is ready, run this code (only once)
 client.once(Events.ClientReady, readyClient => {
     console.log(`${t('default', 'messages.botReady')} ${readyClient.user.tag}`);
     console.log(`${t('default', 'messages.willPostDaily')} ${TOP_LIMIT} ${t('default', 'messages.holdersDaily')}`);
     console.log(t('default', 'messages.slashCommands'));
+    
+    // Initialize health server after Discord bot is ready
+    initializeHealthServer();
 });
 
 // Listen for all interactions
@@ -1427,8 +1440,6 @@ cron.schedule('0 18 * * *', async () => {
     console.log('🕕 Running evening top holders update...');
     await postDailyTopHolders();
 });
-
-// Health check server already created above
 
 // Log in to Discord with your client's token
 client.login(process.env.DISCORD_TOKEN);
