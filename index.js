@@ -363,11 +363,11 @@ const client = new Client({
 // Kale token configuration
 const KALE_TOKEN_ADDRESS = 'CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV';
 
-// Multiple API endpoints for better reliability
+// API endpoints - Hoops Finance and Kale Farm only
 const API_ENDPOINTS = [
     `https://api.hoops.finance/tokens/${KALE_TOKEN_ADDRESS}/balances?excludezero=true&excludeid=true&excludetoken=true&excludelastupdated=true`,
-    `https://api.stellar.expert/explorer/public/asset/${KALE_TOKEN_ADDRESS}/balances`,
-    `https://api.stellar.expert/explorer/public/asset/${KALE_TOKEN_ADDRESS}/holders`
+    `https://kalefarm.xyz/api/leaderboard`,
+    `https://kalefarm.xyz/api/holders`
 ];
 
 const TOP_LIMIT = parseInt(process.env.TOP_LIMIT) || 5;
@@ -939,15 +939,18 @@ async function getTopHolders(limit = TOP_LIMIT) {
     
     for (let i = 0; i < API_ENDPOINTS.length; i++) {
         const apiUrl = API_ENDPOINTS[i];
-        try {
-            console.log(`📡 Trying API endpoint ${i + 1}/${API_ENDPOINTS.length}: ${apiUrl.split('/')[2]}`);
-            
-            const response = await axios.get(apiUrl, {
-                timeout: 5000, // Reduced timeout to 5 seconds for faster response
-                headers: {
-                    'User-Agent': 'Kale-Bot/1.0'
-                }
-            });
+        
+        // Try up to 3 times for each endpoint
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                console.log(`📡 Trying API endpoint ${i + 1}/${API_ENDPOINTS.length} (attempt ${attempt}/3): ${apiUrl.split('/')[2]}`);
+                
+                const response = await axios.get(apiUrl, {
+                    timeout: 120000, // Increased timeout to 2 minutes for Hoops API
+                    headers: {
+                        'User-Agent': 'Kale-Bot/1.0'
+                    }
+                });
             
             let holders = response.data;
             
@@ -960,6 +963,12 @@ async function getTopHolders(limit = TOP_LIMIT) {
             }
             if (holders.records) {
                 holders = holders.records;
+            }
+            if (holders.leaderboard) {
+                holders = holders.leaderboard;
+            }
+            if (holders.holders) {
+                holders = holders.holders;
             }
             
             if (!Array.isArray(holders) || holders.length === 0) {
@@ -1012,23 +1021,37 @@ async function getTopHolders(limit = TOP_LIMIT) {
                     };
                 });
             
-            console.log(`✅ Successfully fetched ${sortedHolders.length} top holders from API endpoint ${i + 1}`);
-            
-            // Cache the results
-            cache.holders = sortedHolders;
-            cache.lastUpdate = now;
-            
-            return sortedHolders;
-            
-        } catch (error) {
-            console.error(`❌ API endpoint ${i + 1} failed:`, error.message);
-            lastError = error;
-            
-            // If this is not the last endpoint, continue to the next one
-            if (i < API_ENDPOINTS.length - 1) {
-                console.log(`🔄 Trying next API endpoint...`);
-                continue;
+                console.log(`✅ Successfully fetched ${sortedHolders.length} top holders from API endpoint ${i + 1}`);
+                
+                // Cache the results
+                cache.holders = sortedHolders;
+                cache.lastUpdate = now;
+                
+                return sortedHolders;
+                
+            } catch (error) {
+                console.error(`❌ API endpoint ${i + 1} attempt ${attempt} failed:`, error.message);
+                lastError = error;
+                
+                // If this is not the last attempt, wait a bit and try again
+                if (attempt < 3) {
+                    console.log(`⏳ Waiting 5 seconds before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    continue;
+                }
+                
+                // If this is the last attempt for this endpoint, break to try next endpoint
+                break;
             }
+        }
+        
+        // If we get here, all attempts for this endpoint failed
+        console.log(`❌ All attempts failed for API endpoint ${i + 1}`);
+        
+        // If this is not the last endpoint, continue to the next one
+        if (i < API_ENDPOINTS.length - 1) {
+            console.log(`🔄 Trying next API endpoint...`);
+            continue;
         }
     }
     

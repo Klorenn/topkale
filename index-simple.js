@@ -266,11 +266,11 @@ const client = new Client({
 // Kale token configuration
 const KALE_TOKEN_ADDRESS = 'CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV';
 
-// Multiple API endpoints for better reliability
+// API endpoints - Hoops Finance and Kale Farm only
 const API_ENDPOINTS = [
     `https://api.hoops.finance/tokens/${KALE_TOKEN_ADDRESS}/balances?excludezero=true&excludeid=true&excludetoken=true&excludelastupdated=true`,
-    `https://api.stellar.expert/explorer/public/asset/${KALE_TOKEN_ADDRESS}/balances`,
-    `https://api.stellar.expert/explorer/public/asset/${KALE_TOKEN_ADDRESS}/holders`
+    `https://kalefarm.xyz/api/leaderboard`,
+    `https://kalefarm.xyz/api/holders`
 ];
 const TOP_LIMIT = parseInt(process.env.TOP_LIMIT) || 5;
 
@@ -544,7 +544,7 @@ async function getTopHolders() {
             console.log(`📡 Trying API endpoint ${i + 1}/${API_ENDPOINTS.length}: ${apiUrl.split('/')[2]}`);
             
             const response = await axios.get(apiUrl, {
-                timeout: 5000, // Reduced timeout to 5 seconds for faster response
+                timeout: 120000, // Increased timeout to 2 minutes for Hoops API
                 headers: {
                     'User-Agent': 'Kale-Bot/1.0'
                 }
@@ -561,6 +561,12 @@ async function getTopHolders() {
             }
             if (holders.records) {
                 holders = holders.records;
+            }
+            if (holders.leaderboard) {
+                holders = holders.leaderboard;
+            }
+            if (holders.holders) {
+                holders = holders.holders;
             }
             
             if (!Array.isArray(holders) || holders.length === 0) {
