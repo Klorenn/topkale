@@ -265,7 +265,13 @@ const client = new Client({
 
 // Kale token configuration
 const KALE_TOKEN_ADDRESS = 'CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV';
-const KALE_API_URL = `https://api.hoops.finance/tokens/${KALE_TOKEN_ADDRESS}/balances?excludezero=true&excludeid=true&excludetoken=true&excludelastupdated=true`;
+
+// Multiple API endpoints for better reliability
+const API_ENDPOINTS = [
+    `https://api.hoops.finance/tokens/${KALE_TOKEN_ADDRESS}/balances?excludezero=true&excludeid=true&excludetoken=true&excludelastupdated=true`,
+    `https://api.stellar.expert/explorer/public/asset/${KALE_TOKEN_ADDRESS}/balances`,
+    `https://api.stellar.expert/explorer/public/asset/${KALE_TOKEN_ADDRESS}/holders`
+];
 const TOP_LIMIT = parseInt(process.env.TOP_LIMIT) || 5;
 
 // Slash commands
@@ -514,70 +520,103 @@ function isValidStellarAddress(address) {
     return validChars.test(address);
 }
 
-// Function to get top holders data from real API
+// Function to get top holders data with fallback APIs
 async function getTopHolders() {
-    try {
-        console.log('📡 Fetching Kale holders data from API...');
-        const response = await axios.get(KALE_API_URL);
-        const holders = response.data;
-        
-        if (!Array.isArray(holders) || holders.length === 0) {
-            throw new Error('No holders data received from API');
-        }
-        
-        // Calculate total supply
-        const totalSupply = holders.reduce((sum, holder) => sum + holder.balance, 0);
-        
-        // Filter out contract addresses and keep only valid Stellar wallet addresses
-        const walletHolders = holders.filter(holder => {
-            const address = holder.address;
-            // Only include valid Stellar wallet addresses (start with 'G', 56 chars, valid format)
-            // Exclude contract addresses (start with 'C') and invalid addresses
-            return address && isValidStellarAddress(address) && !address.startsWith('C');
-        });
-        
-        console.log(`🔍 Filtered ${walletHolders.length} wallet addresses from ${holders.length} total holders`);
-        
-        // Log some examples of filtered addresses for debugging
-        const contractAddresses = holders.filter(h => h.address && h.address.startsWith('C')).slice(0, 3);
-        const validWalletAddresses = walletHolders.slice(0, 3);
-        
-        if (contractAddresses.length > 0) {
-            console.log(`🚫 Excluded contract addresses: ${contractAddresses.map(h => h.address.slice(0, 8) + '...').join(', ')}`);
-        }
-        
-        if (validWalletAddresses.length > 0) {
-            console.log(`✅ Valid wallet addresses: ${validWalletAddresses.map(h => h.address.slice(0, 8) + '...').join(', ')}`);
-        }
-        
-        if (walletHolders.length === 0) {
-            throw new Error('No wallet addresses found in the data');
-        }
-        
-        // Sort by balance (descending) and format data
-        const sortedHolders = walletHolders
-            .sort((a, b) => b.balance - a.balance)
-            .slice(0, TOP_LIMIT)
-            .map(holder => {
-                const percentage = ((holder.balance / totalSupply) * 100).toFixed(2);
-                const formattedBalance = holder.balance.toLocaleString('en-US');
-                
-                return {
-                    address: `${holder.address.slice(0, 6)}...${holder.address.slice(-6)}`,
-                    fullAddress: holder.address,
-                    balance: formattedBalance,
-                    rawBalance: holder.balance,
-                    percentage: `${percentage}%`
-                };
+    let lastError = null;
+    
+    for (let i = 0; i < API_ENDPOINTS.length; i++) {
+        const apiUrl = API_ENDPOINTS[i];
+        try {
+            console.log(`📡 Trying API endpoint ${i + 1}/${API_ENDPOINTS.length}: ${apiUrl.split('/')[2]}`);
+            
+            const response = await axios.get(apiUrl, {
+                timeout: 10000, // 10 second timeout
+                headers: {
+                    'User-Agent': 'Kale-Bot/1.0'
+                }
             });
-        
-        console.log(`✅ Successfully fetched ${sortedHolders.length} top holders`);
-        return sortedHolders;
-        
-    } catch (error) {
-        console.error('❌ Error fetching holders from API:', error.message);
-        throw error;
+            
+            let holders = response.data;
+            
+            // Handle different API response formats
+            if (holders.data) {
+                holders = holders.data;
+            }
+            if (holders.balances) {
+                holders = holders.balances;
+            }
+            if (holders.records) {
+                holders = holders.records;
+            }
+            
+            if (!Array.isArray(holders) || holders.length === 0) {
+                throw new Error(`No holders data received from API endpoint ${i + 1}`);
+            }
+            
+            console.log(`✅ API endpoint ${i + 1} returned ${holders.length} holders`);
+            
+            // Calculate total supply
+            const totalSupply = holders.reduce((sum, holder) => sum + (holder.balance || holder.amount || 0), 0);
+            
+            // Filter out contract addresses and keep only valid Stellar wallet addresses
+            const walletHolders = holders.filter(holder => {
+                const address = holder.address || holder.account;
+                const balance = holder.balance || holder.amount || 0;
+                
+                // Only include valid Stellar wallet addresses (start with 'G', 56 chars, valid format)
+                // Exclude contract addresses (start with 'C') and invalid addresses
+                return address && 
+                       isValidStellarAddress(address) && 
+                       !address.startsWith('C') && 
+                       balance > 0;
+            });
+            
+            console.log(`🔍 Filtered ${walletHolders.length} wallet addresses from ${holders.length} total holders`);
+            
+            if (walletHolders.length === 0) {
+                throw new Error(`No wallet addresses found in API endpoint ${i + 1} data`);
+            }
+            
+            // Sort by balance (descending) and format data
+            const sortedHolders = walletHolders
+                .sort((a, b) => (b.balance || b.amount || 0) - (a.balance || a.amount || 0))
+                .slice(0, TOP_LIMIT)
+                .map(holder => {
+                    const rawBalance = holder.balance || holder.amount || 0;
+                    const percentage = ((rawBalance / totalSupply) * 100).toFixed(2);
+                    const balanceInKale = rawBalance / 10000000;
+                    const formattedBalance = balanceInKale.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    
+                    return {
+                        address: `${holder.address.slice(0, 6)}...${holder.address.slice(-6)}`,
+                        fullAddress: holder.address,
+                        balance: formattedBalance,
+                        rawBalance: rawBalance,
+                        percentage: `${percentage}%`
+                    };
+                });
+            
+            console.log(`✅ Successfully fetched ${sortedHolders.length} top holders from API endpoint ${i + 1}`);
+            return sortedHolders;
+            
+        } catch (error) {
+            console.error(`❌ API endpoint ${i + 1} failed:`, error.message);
+            lastError = error;
+            
+            // If this is not the last endpoint, continue to the next one
+            if (i < API_ENDPOINTS.length - 1) {
+                console.log(`🔄 Trying next API endpoint...`);
+                continue;
+            }
+        }
     }
+    
+    // If all API endpoints failed, throw the last error
+    console.error('❌ All API endpoints failed');
+    throw new Error(`All API endpoints failed. Last error: ${lastError?.message || 'Unknown error'}`);
 }
 
 // Function to get Kale price from API
@@ -625,9 +664,12 @@ async function getTopHoldersEmbed(userId) {
         else if (index === 2) medal = '🥉 3';
         else medal = `${index + 1}️⃣`;
         
-        // Format balance with correct decimal places (KALE has 6 decimals)
-        const balanceInKale = holder.rawBalance / 1000000;
-        const formattedBalance = balanceInKale.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        // Format balance with correct decimal places (KALE has 7 decimals)
+        const balanceInKale = holder.rawBalance / 10000000;
+        const formattedBalance = balanceInKale.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
         
         // Create Stellar Expert link
         const stellarExpertLink = `[${holder.fullAddress}](https://stellar.expert/explorer/public/account/${holder.fullAddress})`;
