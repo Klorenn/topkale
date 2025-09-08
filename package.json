@@ -1,27 +1,19 @@
 {
-  "name": "kale-bot-website",
+  "name": "kale-discord-bot",
   "version": "1.0.0",
-  "description": "Página web para el bot de Discord Kale - Monitoreo de top holders en Stellar",
-  "private": true,
+  "description": "Bot de Discord para monitoreo de top holders de KALE en Stellar",
+  "main": "index.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "node test-syntax.js"
   },
   "dependencies": {
-    "next": "14.0.4",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "discord.js": "^14.14.1",
     "axios": "^1.6.2"
   },
-  "devDependencies": {
-    "@types/node": "20.10.5",
-    "@types/react": "18.2.45",
-    "@types/react-dom": "18.2.18",
-    "eslint": "8.56.0",
-    "eslint-config-next": "14.0.4",
-    "typescript": "5.3.3"
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [
     "discord",
