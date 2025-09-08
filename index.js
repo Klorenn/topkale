@@ -1416,28 +1416,7 @@ cron.schedule('0 18 * * *', async () => {
     await postDailyTopHolders();
 });
 
-// Create simple HTTP server for healthchecks
-const server = http.createServer((req, res) => {
-    if (req.url === '/' && req.method === 'GET') {
-        // Healthcheck endpoint
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-            status: 'healthy',
-            timestamp: new Date().toISOString(),
-            service: 'Kale Discord Bot'
-        }));
-    } else {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Not found' }));
-    }
-});
-
-// Start HTTP server on Railway's port or default to 8080
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-    console.log(`🌐 Healthcheck server running on port ${PORT}`);
-console.log(`🏥 Healthcheck endpoint: http://localhost:${PORT}/`);
-});
+// Health check server already created above
 
 // Log in to Discord with your client's token
 client.login(process.env.DISCORD_TOKEN);
