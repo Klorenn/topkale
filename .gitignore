@@ -1,36 +1,57 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Dependencies
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# Environment variables
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# vercel
-.vercel
+# Next.js (no needed for Discord bot)
+.next/
+out/
+build/
 
-# typescript
-*.tsbuildinfo
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Test files (keep only essential ones)
+test-auth.js
+test-discord.js
+test-healthcheck.js
+test-syntax.js
+
+# Website files (not needed for bot)
+pages/
+styles/
+next.config.js
 next-env.d.ts
+tsconfig.json
+vercel.json
+app.json
+
+# Documentation files (keep only essential)
+CONFIGURACION-RAPIDA.md
+README-WEBSITE.md
+WALLET_FARMING.md
+Website/
+
+# Other unnecessary files
+kale-contract.js
+tatus
+env.local.example
