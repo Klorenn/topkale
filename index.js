@@ -4,6 +4,41 @@ const cron = require('node-cron');
 const http = require('http');
 require('dotenv').config();
 
+// Health check server for Railway
+const PORT = process.env.PORT || 3000;
+const server = http.createServer((req, res) => {
+    console.log(`📡 Health check request: ${req.method} ${req.url}`);
+    
+    if (req.url === '/health' || req.url === '/') {
+        res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type'
+        });
+        res.end(JSON.stringify({ 
+            status: 'healthy', 
+            bot: 'Kale Bot', 
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            port: PORT,
+            env: process.env.NODE_ENV || 'development'
+        }));
+    } else {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Not found', path: req.url }));
+    }
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🏥 Health check server running on port ${PORT}`);
+    console.log(`🌐 Health check available at http://0.0.0.0:${PORT}/health`);
+});
+
+server.on('error', (err) => {
+    console.error('❌ Health check server error:', err);
+});
+
 // Validate required environment variables
 const requiredEnvVars = ['DISCORD_TOKEN', 'CLIENT_ID'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
