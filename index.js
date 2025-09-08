@@ -6,8 +6,10 @@ require('dotenv').config();
 
 // Health check server for Railway
 const PORT = process.env.PORT || 3000;
+console.log(`🔧 Configurando servidor en puerto: ${PORT}`);
+
 const server = http.createServer((req, res) => {
-    console.log(`📡 Health check request: ${req.method} ${req.url}`);
+    console.log(`📡 Health check request: ${req.method} ${req.url} from ${req.connection.remoteAddress}`);
     
     if (req.url === '/health' || req.url === '/') {
         res.writeHead(200, { 
@@ -30,13 +32,23 @@ const server = http.createServer((req, res) => {
     }
 });
 
+// Try to listen on the port
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`🏥 Health check server running on port ${PORT}`);
     console.log(`🌐 Health check available at http://0.0.0.0:${PORT}/health`);
+    console.log(`🔗 Railway healthcheck URL: http://localhost:${PORT}/health`);
 });
 
 server.on('error', (err) => {
     console.error('❌ Health check server error:', err);
+    console.error('❌ Error details:', err.code, err.errno, err.syscall);
+    
+    // Try alternative port
+    const altPort = 8080;
+    console.log(`🔄 Trying alternative port: ${altPort}`);
+    server.listen(altPort, '0.0.0.0', () => {
+        console.log(`🏥 Health check server running on alternative port ${altPort}`);
+    });
 });
 
 // Validate required environment variables
