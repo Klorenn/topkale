@@ -44,6 +44,7 @@ const translations = {
             stats: '📊 Muestra estadísticas globales del token Kale',
             alerts: '🔔 Configura alertas de cambios de balance',
             history: '📈 Muestra el histórico de cambios en holdings',
+            info: 'ℹ️ Muestra información y enlaces de Kale',
         },
         embeds: {
             kaleTitle: '🌿 Kale Bot Commands',
@@ -68,6 +69,8 @@ const translations = {
             alertsDescription: 'Configura alertas para cambios de balance',
             historyTitle: '📈 Historial de Holdings',
             historyDescription: 'Historial de cambios en tus holdings',
+            infoTitle: '🌿 Información de Kale',
+            infoDescription: 'Información oficial y enlaces útiles de Kale',
             leaderboardTitle: '🏅 Leaderboard Extendido',
             leaderboardDescription: 'Ranking completo de holders de Kale'
         },
@@ -145,6 +148,7 @@ const translations = {
             stats: '📊 Shows global Kale token statistics',
             alerts: '🔔 Configure balance change alerts',
             history: '📈 Shows holdings change history',
+            info: 'ℹ️ Shows Kale information and links',
         },
         embeds: {
             kaleTitle: '🌿 Kale Bot Commands',
@@ -169,6 +173,8 @@ const translations = {
             alertsDescription: 'Configure alerts for balance changes',
             historyTitle: '📈 Holdings History',
             historyDescription: 'History of changes in your holdings',
+            infoTitle: '🌿 Kale Information',
+            infoDescription: 'Official information and useful links for Kale',
             leaderboardTitle: '🏅 Extended Leaderboard',
             leaderboardDescription: 'Complete ranking of Kale holders'
         },
@@ -246,6 +252,7 @@ const translations = {
             stats: '📊 Mostra estatísticas globais do token Kale',
             alerts: '🔔 Configure alertas de mudanças de saldo',
             history: '📈 Mostra o histórico de mudanças nos holdings',
+            info: 'ℹ️ Mostra informações e links do Kale',
         },
         embeds: {
             kaleTitle: '🌿 Comandos do Bot Kale',
@@ -270,6 +277,8 @@ const translations = {
             alertsDescription: 'Configure alertas para mudanças de saldo',
             historyTitle: '📈 Histórico de Holdings',
             historyDescription: 'Histórico de mudanças nos seus holdings',
+            infoTitle: '🌿 Informações do Kale',
+            infoDescription: 'Informações oficiais e links úteis do Kale',
             leaderboardTitle: '🏅 Leaderboard Estendido',
             leaderboardDescription: 'Ranking completo de holders de Kale'
         },
@@ -452,6 +461,9 @@ const commands = [
             option.setName('address')
                 .setDescription('Dirección de Stellar para ver el historial')
                 .setRequired(true)),
+    new SlashCommandBuilder()
+        .setName('info')
+        .setDescription('ℹ️ Muestra información y enlaces de Kale'),
 ];
 
 // Register slash commands
@@ -949,6 +961,51 @@ client.on(Events.InteractionCreate, async interaction => {
                 await interaction.editReply(t(interaction.user.id, 'messages.errorFetchingHolders'));
         }
     }
+
+    if (interaction.commandName === 'info') {
+        try {
+            await interaction.deferReply();
+            
+            const embed = new EmbedBuilder()
+                .setTitle(t(interaction.user.id, 'embeds.infoTitle'))
+                .setDescription(t(interaction.user.id, 'embeds.infoDescription'))
+                .setColor(0x00ff00)
+                .addFields(
+                    { 
+                        name: '🌐 Sitio Web de la Comunidad', 
+                        value: '[kaleonstellar.com](https://kaleonstellar.com/)', 
+                        inline: true 
+                    },
+                    { 
+                        name: '🌾 Miner Website', 
+                        value: '[Kale Farm](https://kaleonstellar.com/farm)', 
+                        inline: true 
+                    },
+                    { 
+                        name: '📊 Stellar Expert', 
+                        value: '[Ver en Stellar Expert](https://stellar.expert/explorer/public/asset/KALE-GB6YPGW5JFMMP2QBXFLJ3YEMO2AKWZQERR3LMKXACXH6O6Q6K6RKDX5M)', 
+                        inline: true 
+                    },
+                    { 
+                        name: '🔗 Contrato del Token', 
+                        value: '`KALE-GB6YPGW5JFMMP2QBXFLJ3YEMO2AKWZQERR3LMKXACXH6O6Q6K6RKDX5M`', 
+                        inline: false 
+                    },
+                    { 
+                        name: '💡 ¿Qué es Kale?', 
+                        value: 'Kale es un token de Stellar que se puede minar a través de la plataforma Kale Farm. Únete a la comunidad y comienza a minar tokens.', 
+                        inline: false 
+                    }
+                )
+                .setFooter({ text: 'Powered by Kale Bot • kaleonstellar.com' })
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [embed] });
+        } catch (error) {
+            console.error('Error showing info:', error);
+            await interaction.editReply('❌ Error al mostrar la información');
+        }
+    }
     }
     
     // Handle button interactions
@@ -1035,7 +1092,14 @@ async function getTopHolders(limit = TOP_LIMIT) {
             }
             
             if (!Array.isArray(holders) || holders.length === 0) {
-                throw new Error(`No holders data received from API endpoint ${i + 1}`);
+                console.log(`⚠️ No holders data from API endpoint ${i + 1}, trying next...`);
+                if (i < API_ENDPOINTS.length - 1) {
+                    continue;
+                } else {
+                    // If all APIs return no data, return empty array
+                    console.log('📊 No holders data from any API, returning empty array');
+                    return [];
+                }
             }
             
             console.log(`✅ API endpoint ${i + 1} returned ${holders.length} holders`);
@@ -1454,6 +1518,19 @@ async function getTopHoldersEmbed(userId, limit = 5) {
         .setTitle(t(userId, 'embeds.topTitle'))
         .setColor(3447003) // Blue color like in your example
         .setTimestamp();
+
+    // Handle case when no holders are available
+    if (!holders || holders.length === 0) {
+        embed.addFields({
+            name: '📊 No Data Available',
+            value: 'No holders data is currently available. This could mean:\n• The token is new and has no holders yet\n• All balances are zero\n• The API is temporarily unavailable\n\nTry again later or check the token status.',
+            inline: false
+        });
+        embed.setFooter({ 
+            text: t(userId, 'footer.dataUpdated')
+        });
+        return embed;
+    }
 
     holders.forEach((holder, index) => {
         let medal;
