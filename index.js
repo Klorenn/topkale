@@ -474,8 +474,8 @@ const commands = [
 
 // Function to initialize health check server
 function initializeHealthServer() {
-    if (healthServer) {
-        console.log('🏥 Health server already initialized');
+    if (healthServer && healthServer.listening) {
+        console.log('🏥 Health server already initialized and running');
         return;
     }
 
@@ -516,11 +516,14 @@ function initializeHealthServer() {
         console.error('❌ Health check server error:', err);
         console.error('❌ Error details:', err.code, err.errno, err.syscall);
         
-        // Try alternative port
-        const altPort = 8080;
-        console.log(`🔄 Trying alternative port: ${altPort}`);
-        healthServer.listen(altPort, '0.0.0.0', () => {
-            console.log(`🏥 Health check server running on alternative port ${altPort}`);
+        // Close the current server and try alternative port
+        healthServer.close(() => {
+            const altPort = 8080;
+            console.log(`🔄 Trying alternative port: ${altPort}`);
+            healthServer.listen(altPort, '0.0.0.0', () => {
+                console.log(`🏥 Health check server running on alternative port ${altPort}`);
+                console.log(`🌐 Health check available at http://0.0.0.0:${altPort}/health`);
+            });
         });
     });
 }
@@ -756,7 +759,7 @@ client.on(Events.InteractionCreate, async interaction => {
                     inline: true 
                 }
             )
-                    .setFooter({ text: t(interaction.user.id, 'footer.dataUpdated') })
+                    .setFooter({ text: 'Powered by Hoops Finance API (api.hoops.finance)' })
             .setTimestamp();
 
                 await interaction.editReply({ embeds: [embed] });
@@ -1187,41 +1190,115 @@ async function getKalePrice() {
 // Function to get wallet information for a specific address
 async function getWalletInfo(address) {
     try {
-        // Get all holders data directly from API
-        const response = await axios.get(KALE_API_URL);
-        const allHolders = response.data;
+        // Use the same API endpoint logic as getTopHolders
+        let lastError = null;
         
-        // Find the specific holder
-        const holder = allHolders.find(h => h.address === address);
-        
-        if (!holder) {
-            return null;
+        for (let i = 0; i < API_ENDPOINTS.length; i++) {
+            const apiUrl = API_ENDPOINTS[i];
+            
+            // Try up to 3 times for each endpoint
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    console.log(`🔍 Trying API endpoint ${i + 1}/${API_ENDPOINTS.length} for wallet info (attempt ${attempt}/3): ${apiUrl.split('/')[2]}`);
+                    
+                    const response = await axios.get(apiUrl, {
+                        timeout: 120000, // Increased timeout to 2 minutes for Hoops API
+                        headers: {
+                            'User-Agent': 'Kale-Bot/1.0'
+                        }
+                    });
+                
+                    let allHolders = response.data;
+                    
+                    // Handle different API response formats
+                    if (allHolders.data) {
+                        allHolders = allHolders.data;
+                    }
+                    if (allHolders.balances) {
+                        allHolders = allHolders.balances;
+                    }
+                    if (allHolders.records) {
+                        allHolders = allHolders.records;
+                    }
+                    if (allHolders.leaderboard) {
+                        allHolders = allHolders.leaderboard;
+                    }
+                    if (allHolders.holders) {
+                        allHolders = allHolders.holders;
+                    }
+                    
+                    if (!Array.isArray(allHolders) || allHolders.length === 0) {
+                        throw new Error(`No holders data received from API endpoint ${i + 1}`);
+                    }
+                    
+                    console.log(`✅ API endpoint ${i + 1} returned ${allHolders.length} holders for wallet info`);
+                    
+                    // Find the specific holder
+                    const holder = allHolders.find(h => (h.address || h.account) === address);
+                    
+                    if (!holder) {
+                        // If not found in this endpoint, try the next one
+                        continue;
+                    }
+
+                    // Filter valid wallet addresses for calculations
+                    const walletHolders = allHolders.filter(h => {
+                        const addr = h.address || h.account;
+                        const balance = h.balance || h.amount || 0;
+                        return addr && isValidStellarAddress(addr) && !addr.startsWith('C') && balance > 0;
+                    });
+                    
+                    const totalSupply = walletHolders.reduce((sum, h) => sum + (h.balance || h.amount || 0), 0);
+                    
+                    const holderBalance = holder.balance || holder.amount || 0;
+                    const percentage = ((holderBalance / totalSupply) * 100).toFixed(4);
+                    const balanceInKale = holderBalance / 10000000;
+                    const formattedBalance = balanceInKale.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    // Find position in ranking
+                    const sortedHolders = walletHolders.sort((a, b) => (b.balance || b.amount || 0) - (a.balance || a.amount || 0));
+                    const position = sortedHolders.findIndex(h => (h.address || h.account) === address) + 1;
+
+                    return {
+                        formattedBalance,
+                        percentage,
+                        position,
+                        rawBalance: holderBalance
+                    };
+                    
+                } catch (error) {
+                    console.error(`❌ API endpoint ${i + 1} attempt ${attempt} failed for wallet info:`, error.message);
+                    lastError = error;
+                    
+                    // If this is not the last attempt, wait a bit and try again
+                    if (attempt < 3) {
+                        console.log(`⏳ Waiting 5 seconds before retry...`);
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                        continue;
+                    }
+                    
+                    // If this is the last attempt for this endpoint, break to try next endpoint
+                    break;
+                }
+            }
+            
+            // If we get here, all attempts for this endpoint failed
+            console.log(`❌ All attempts failed for API endpoint ${i + 1} for wallet info`);
+            
+            // If this is not the last endpoint, continue to the next one
+            if (i < API_ENDPOINTS.length - 1) {
+                console.log(`🔄 Trying next API endpoint for wallet info...`);
+                continue;
+            }
         }
-
-        // Filter valid wallet addresses for calculations
-        const walletHolders = allHolders.filter(h => {
-            return h.address && isValidStellarAddress(h.address) && !h.address.startsWith('C');
-        });
         
-        const totalSupply = walletHolders.reduce((sum, h) => sum + h.balance, 0);
+        // If all API endpoints failed or address not found
+        console.error('❌ All API endpoints failed for wallet info or address not found');
+        return null;
         
-        const percentage = ((holder.balance / totalSupply) * 100).toFixed(4);
-        const balanceInKale = holder.balance / 10000000;
-        const formattedBalance = balanceInKale.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-
-        // Find position in ranking
-        const sortedHolders = walletHolders.sort((a, b) => b.balance - a.balance);
-        const position = sortedHolders.findIndex(h => h.address === address) + 1;
-
-        return {
-            formattedBalance,
-            percentage,
-            position,
-            rawBalance: holder.balance
-        };
     } catch (error) {
         console.error('Error getting wallet info:', error);
         return null;
@@ -1231,47 +1308,131 @@ async function getWalletInfo(address) {
 // Function to get global statistics
 async function getGlobalStats() {
     try {
-        const response = await axios.get(KALE_API_URL);
-        const holders = response.data;
+        // Use the same API endpoint logic as getTopHolders
+        let lastError = null;
         
-        // Filter valid wallet addresses
-        const walletHolders = holders.filter(holder => {
-            const address = holder.address;
-            return address && isValidStellarAddress(address) && !address.startsWith('C');
-        });
+        for (let i = 0; i < API_ENDPOINTS.length; i++) {
+            const apiUrl = API_ENDPOINTS[i];
+            
+            // Try up to 3 times for each endpoint
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    console.log(`📊 Trying API endpoint ${i + 1}/${API_ENDPOINTS.length} for stats (attempt ${attempt}/3): ${apiUrl.split('/')[2]}`);
+                    
+                    const response = await axios.get(apiUrl, {
+                        timeout: 120000, // Increased timeout to 2 minutes for Hoops API
+                        headers: {
+                            'User-Agent': 'Kale-Bot/1.0'
+                        }
+                    });
+                
+                    let holders = response.data;
+                    
+                    // Handle different API response formats
+                    if (holders.data) {
+                        holders = holders.data;
+                    }
+                    if (holders.balances) {
+                        holders = holders.balances;
+                    }
+                    if (holders.records) {
+                        holders = holders.records;
+                    }
+                    if (holders.leaderboard) {
+                        holders = holders.leaderboard;
+                    }
+                    if (holders.holders) {
+                        holders = holders.holders;
+                    }
+                    
+                    if (!Array.isArray(holders) || holders.length === 0) {
+                        throw new Error(`No holders data received from API endpoint ${i + 1}`);
+                    }
+                    
+                    console.log(`✅ API endpoint ${i + 1} returned ${holders.length} holders for stats`);
+                    
+                    // Filter valid wallet addresses
+                    const walletHolders = holders.filter(holder => {
+                        const address = holder.address || holder.account;
+                        const balance = holder.balance || holder.amount || 0;
+                        
+                        // Only include valid Stellar wallet addresses (start with 'G', 56 chars, valid format)
+                        // Exclude contract addresses (start with 'C') and invalid addresses
+                        return address && 
+                               isValidStellarAddress(address) && 
+                               !address.startsWith('C') && 
+                               balance > 0;
+                    });
+                    
+                    console.log(`🔍 Filtered ${walletHolders.length} wallet addresses from ${holders.length} total holders for stats`);
+                    
+                    if (walletHolders.length === 0) {
+                        throw new Error(`No wallet addresses found in API endpoint ${i + 1} data`);
+                    }
+                    
+                    const totalSupply = walletHolders.reduce((sum, holder) => sum + (holder.balance || holder.amount || 0), 0);
+                    const totalHolders = walletHolders.length;
+                    
+                    // Sort by balance
+                    const sortedHolders = walletHolders.sort((a, b) => (b.balance || b.amount || 0) - (a.balance || a.amount || 0));
+                    
+                    // Calculate top 10 and top 100 percentages
+                    const top10Balance = sortedHolders.slice(0, 10).reduce((sum, holder) => sum + (holder.balance || holder.amount || 0), 0);
+                    const top100Balance = sortedHolders.slice(0, 100).reduce((sum, holder) => sum + (holder.balance || holder.amount || 0), 0);
+                    
+                    const top10Percentage = ((top10Balance / totalSupply) * 100).toFixed(2);
+                    const top100Percentage = ((top100Balance / totalSupply) * 100).toFixed(2);
+                    
+                    // Calculate average balance
+                    const averageBalance = (totalSupply / totalHolders / 10000000).toFixed(2);
+                    
+                    // Get price for market cap calculation
+                    const priceData = await getKalePrice();
+                    const marketCap = (parseFloat(priceData.price) * totalSupply / 10000000).toFixed(0);
+                    
+                    const totalSupplyInKale = totalSupply / 10000000;
+                    return {
+                        totalSupply: totalSupplyInKale.toLocaleString('en-US', {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                        }),
+                        totalHolders: totalHolders.toLocaleString('en-US'),
+                        marketCap: marketCap,
+                        top10Percentage,
+                        top100Percentage,
+                        averageBalance
+                    };
+                    
+                } catch (error) {
+                    console.error(`❌ API endpoint ${i + 1} attempt ${attempt} failed for stats:`, error.message);
+                    lastError = error;
+                    
+                    // If this is not the last attempt, wait a bit and try again
+                    if (attempt < 3) {
+                        console.log(`⏳ Waiting 5 seconds before retry...`);
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                        continue;
+                    }
+                    
+                    // If this is the last attempt for this endpoint, break to try next endpoint
+                    break;
+                }
+            }
+            
+            // If we get here, all attempts for this endpoint failed
+            console.log(`❌ All attempts failed for API endpoint ${i + 1} for stats`);
+            
+            // If this is not the last endpoint, continue to the next one
+            if (i < API_ENDPOINTS.length - 1) {
+                console.log(`🔄 Trying next API endpoint for stats...`);
+                continue;
+            }
+        }
         
-        const totalSupply = walletHolders.reduce((sum, holder) => sum + holder.balance, 0);
-        const totalHolders = walletHolders.length;
+        // If all API endpoints failed, throw the last error
+        console.error('❌ All API endpoints failed for stats');
+        throw new Error(`All API endpoints failed for stats. Last error: ${lastError?.message || 'Unknown error'}`);
         
-        // Sort by balance
-        const sortedHolders = walletHolders.sort((a, b) => b.balance - a.balance);
-        
-        // Calculate top 10 and top 100 percentages
-        const top10Balance = sortedHolders.slice(0, 10).reduce((sum, holder) => sum + holder.balance, 0);
-        const top100Balance = sortedHolders.slice(0, 100).reduce((sum, holder) => sum + holder.balance, 0);
-        
-        const top10Percentage = ((top10Balance / totalSupply) * 100).toFixed(2);
-        const top100Percentage = ((top100Balance / totalSupply) * 100).toFixed(2);
-        
-        // Calculate average balance
-        const averageBalance = (totalSupply / totalHolders / 10000000).toFixed(2);
-        
-        // Get price for market cap calculation
-        const priceData = await getKalePrice();
-        const marketCap = (parseFloat(priceData.price) * totalSupply / 10000000).toFixed(0);
-        
-        const totalSupplyInKale = totalSupply / 10000000;
-        return {
-            totalSupply: totalSupplyInKale.toLocaleString('en-US', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }),
-            totalHolders: totalHolders.toLocaleString('en-US'),
-            marketCap: marketCap,
-            top10Percentage,
-            top100Percentage,
-            averageBalance
-        };
     } catch (error) {
         console.error('Error getting global stats:', error);
         return {
