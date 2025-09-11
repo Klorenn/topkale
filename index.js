@@ -85,6 +85,13 @@ const translations = {
             stats: 'Show global statistics',
             alerts: 'Configure balance alerts',
             history: 'Show holdings history',
+            info: 'Show Kale information and links',
+            communityWebsite: '🌐 Sitio Web de la Comunidad',
+            minerWebsite: '🌾 Miner Website',
+            stellarExpert: '📊 Stellar Expert',
+            tokenContract: '🔗 Contrato del Token',
+            whatIsKale: '💡 ¿Qué es Kale?',
+            whatIsKaleDesc: 'Kale es un token de Stellar que se puede minar a través de la plataforma Kale Farm. Únete a la comunidad y comienza a minar tokens.',
             currentPrice: 'Current Price',
             change24h: '24h Change',
             marketCap: 'Market Cap',
@@ -189,6 +196,13 @@ const translations = {
             stats: 'Show global statistics',
             alerts: 'Configure balance alerts',
             history: 'Show holdings history',
+            info: 'Show Kale information and links',
+            communityWebsite: '🌐 Community Website',
+            minerWebsite: '🌾 Miner Website',
+            stellarExpert: '📊 Stellar Expert',
+            tokenContract: '🔗 Token Contract',
+            whatIsKale: '💡 What is Kale?',
+            whatIsKaleDesc: 'Kale is a Stellar token that can be mined through the Kale Farm platform. Join the community and start mining tokens.',
             currentPrice: 'Current Price',
             change24h: '24h Change',
             marketCap: 'Market Cap',
@@ -293,6 +307,13 @@ const translations = {
             stats: 'Mostrar estatísticas globais',
             alerts: 'Configurar alertas de saldo',
             history: 'Mostrar histórico de holdings',
+            info: 'Mostrar informações e links do Kale',
+            communityWebsite: '🌐 Site da Comunidade',
+            minerWebsite: '🌾 Site do Miner',
+            stellarExpert: '📊 Stellar Expert',
+            tokenContract: '🔗 Contrato do Token',
+            whatIsKale: '💡 O que é Kale?',
+            whatIsKaleDesc: 'Kale é um token Stellar que pode ser minerado através da plataforma Kale Farm. Junte-se à comunidade e comece a minerar tokens.',
             currentPrice: 'Preço Atual',
             change24h: 'Mudança 24h',
             marketCap: 'Market Cap',
@@ -972,28 +993,28 @@ client.on(Events.InteractionCreate, async interaction => {
                 .setColor(0x00ff00)
                 .addFields(
                     { 
-                        name: '🌐 Sitio Web de la Comunidad', 
+                        name: t(interaction.user.id, 'fields.communityWebsite'), 
                         value: '[kaleonstellar.com](https://kaleonstellar.com/)', 
                         inline: true 
                     },
                     { 
-                        name: '🌾 Miner Website', 
-                        value: '[Kale Farm](https://kaleonstellar.com/farm)', 
+                        name: t(interaction.user.id, 'fields.minerWebsite'), 
+                        value: '[Kale Farm](https://kalefarm.xyz)', 
                         inline: true 
                     },
                     { 
-                        name: '📊 Stellar Expert', 
-                        value: '[Ver en Stellar Expert](https://stellar.expert/explorer/public/asset/KALE-GB6YPGW5JFMMP2QBXFLJ3YEMO2AKWZQERR3LMKXACXH6O6Q6K6RKDX5M)', 
+                        name: t(interaction.user.id, 'fields.stellarExpert'), 
+                        value: '[Ver en Stellar Expert](https://stellar.expert/explorer/public/asset/KALE-GBDVX4VELCDSQ54KQJYTNHXAHFLBCA77ZY2USQBM4CSHTTV7DME7KALE)', 
                         inline: true 
                     },
                     { 
-                        name: '🔗 Contrato del Token', 
-                        value: '`KALE-GB6YPGW5JFMMP2QBXFLJ3YEMO2AKWZQERR3LMKXACXH6O6Q6K6RKDX5M`', 
+                        name: t(interaction.user.id, 'fields.tokenContract'), 
+                        value: '`KALE-GBDVX4VELCDSQ54KQJYTNHXAHFLBCA77ZY2USQBM4CSHTTV7DME7KALE`', 
                         inline: false 
                     },
                     { 
-                        name: '💡 ¿Qué es Kale?', 
-                        value: 'Kale es un token de Stellar que se puede minar a través de la plataforma Kale Farm. Únete a la comunidad y comienza a minar tokens.', 
+                        name: t(interaction.user.id, 'fields.whatIsKale'), 
+                        value: t(interaction.user.id, 'fields.whatIsKaleDesc'), 
                         inline: false 
                     }
                 )
@@ -1007,7 +1028,7 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
     }
-    
+
     // Handle button interactions
     if (interaction.isButton()) {
         console.log('🔍 Button clicked:', interaction.customId);
