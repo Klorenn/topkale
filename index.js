@@ -484,7 +484,7 @@ const commands = [
                 .setRequired(true)),
     new SlashCommandBuilder()
         .setName('info')
-        .setDescription('ℹ️ Muestra información y enlaces de Kale'),
+        .setDescription('ℹ️ Shows Kale information and links'),
 ];
 
 // Register slash commands
